@@ -15,6 +15,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 
+import com.google.inject.Provides;
 import javax.inject.Inject;
 import java.util.*;
 import java.util.concurrent.*;
@@ -58,6 +59,12 @@ public class ChatBetPlugin extends Plugin {
     private final List<String> recentBalanceRequests = new CopyOnWriteArrayList<>();
 
     public Config getConfig(ConfigManager configManager) {
+        return configManager.getConfig(ChatBetConfig.class);
+    }
+
+    @Provides
+    ChatBetConfig provideConfig(ConfigManager configManager)
+    {
         return configManager.getConfig(ChatBetConfig.class);
     }
 
