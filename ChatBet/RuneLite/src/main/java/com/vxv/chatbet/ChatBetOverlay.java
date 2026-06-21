@@ -11,16 +11,17 @@ import java.awt.*;
 
 public class ChatBetOverlay extends Overlay
 {
-    private final ChatBetConfig config;
-    private final ChatBetPlugin plugin;
+    @Inject
+    private ChatBetConfig config;
+
+    @Inject
+    private ChatBetPlugin plugin;
 
     private final PanelComponent panelComponent = new PanelComponent();
 
     @Inject
-    public ChatBetOverlay(ChatBetConfig config, ChatBetPlugin plugin)
+    public ChatBetOverlay()
     {
-        this.config = config;
-        this.plugin = plugin;
         setPosition(OverlayPosition.TOP_LEFT);
         panelComponent.setPreferredSize(new Dimension(280, 0));
         panelComponent.setBackgroundColor(new Color(0, 0, 0, 150));
