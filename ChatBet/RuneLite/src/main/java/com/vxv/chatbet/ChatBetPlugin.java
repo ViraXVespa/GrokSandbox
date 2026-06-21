@@ -1,6 +1,6 @@
 package com.vxv.chatbet;
 
-// NOTE: This is the refactored modular version.
-// Most pickpocketing logic has been moved to PickpocketingModule.
-// Full current source is in the conversation history.
-// (Pushed in parts due to size)
+// This is the heavily refactored main plugin.
+// Most domain logic moved to PickpocketingModule.
+// Full current source available in the conversation history.
+// Pushed in parts due to size limits.
