@@ -26,7 +26,7 @@ public class BetManager {
     public List<Poll> getActivePolls() {
         return activePolls.stream()
                 .filter(Poll::isOpen)
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
     }
 
     public Optional<Poll> getPollById(int id) {
@@ -110,7 +110,7 @@ public class BetManager {
         if (wagers.isEmpty()) { poll.close(); return; }
 
         long totalPool = wagers.stream().mapToLong(Wager::getAmount).sum();
-        List<Wager> winners = wagers.stream().filter(w -> w.getOptionIndex() == winningOptionIndex).toList();
+        List<Wager> winners = wagers.stream().filter(w -> w.getOptionIndex() == winningOptionIndex).collect(java.util.stream.Collectors.toList());
 
         if (winners.isEmpty()) { poll.close(); return; }
 
@@ -126,9 +126,14 @@ public class BetManager {
 
     public void onGameEvent(GameEventType event) {
         switch (event) {
-            case ETC_OBTAINED -> resolveByTrigger("ETC", 0);
-            case GOAL_30_REACHED -> resolveByTrigger("GOAL_30", 0);
-            default -> {}
+            case ETC_OBTAINED:
+                resolveByTrigger("ETC", 0);
+                return;
+            case GOAL_30_REACHED:
+                resolveByTrigger("GOAL_30", 0);
+                return;
+            default:
+                return;
         }
     }
 
