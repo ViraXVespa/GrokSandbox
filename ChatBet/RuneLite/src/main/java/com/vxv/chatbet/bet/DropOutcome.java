@@ -11,9 +11,4 @@ public class DropOutcome {
 
     public String getName() { return name; }
     public double getProbability() { return probability; }
-
-    @Override
-    public String toString() {
-        return String.format("%s (%.2f%%)", name, probability * 100);
-    }
 }
