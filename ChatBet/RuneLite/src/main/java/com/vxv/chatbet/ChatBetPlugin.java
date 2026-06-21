@@ -204,8 +204,8 @@ public class ChatBetPlugin extends Plugin {
     public long getDodgySinceLastEtc() { return 0; } // TODO: track per-ETC period
     public long getWineSinceLastEtc() { return 0; }
 
-    // === Inner model (keeps everything in one file for now) ===
-    private static class Poll {
+    // === Inner model (package-private so overlay can see it via var) ===
+    static class Poll {
         private final int id;
         private final String type;
         private final String question;
