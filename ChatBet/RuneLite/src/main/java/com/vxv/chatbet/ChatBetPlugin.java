@@ -8,6 +8,8 @@ import net.runelite.api.Skill;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.client.config.Config;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -54,6 +56,11 @@ public class ChatBetPlugin extends Plugin {
     private final List<Poll> activePolls = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<String, Long> balances = new ConcurrentHashMap<>();
     private final List<String> recentBalanceRequests = new CopyOnWriteArrayList<>();
+
+    @Override
+    public Config getConfig(ConfigManager configManager) {
+        return configManager.getConfig(ChatBetConfig.class);
+    }
 
     @Override
     protected void startUp() {
