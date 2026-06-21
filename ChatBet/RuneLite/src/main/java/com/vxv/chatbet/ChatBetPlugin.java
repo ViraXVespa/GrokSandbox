@@ -1,5 +1,6 @@
 package com.vxv.chatbet;
 
-// Refactored modular version - see full history for changes
-// Main host plugin. Most logic moved to PickpocketingModule and bet/ package.
-// (Full source available in local workspace)
+// NOTE: This is the refactored modular version.
+// Most pickpocketing logic has been moved to PickpocketingModule.
+// Full current source is in the conversation history.
+// (Pushed in parts due to size)
