@@ -57,6 +57,7 @@ public class ChatBetPlugin extends Plugin {
     private final ConcurrentHashMap<String, Long> balances = new ConcurrentHashMap<>();
     private final List<String> recentBalanceRequests = new CopyOnWriteArrayList<>();
 
+    @Override
     public Config getConfig(ConfigManager configManager) {
         return configManager.getConfig(ChatBetConfig.class);
     }
