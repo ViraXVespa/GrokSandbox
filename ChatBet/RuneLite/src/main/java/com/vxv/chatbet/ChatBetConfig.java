@@ -44,4 +44,25 @@ public interface ChatBetConfig extends Config {
     default int thievingGoalXp() {
         return 13034431; // Level 99 default
     }
+
+    // === Phase 1 Side Panel Goal Persistence ===
+    @ConfigItem(
+        keyName = "activeTaskName",
+        name = "Active Task",
+        description = "Currently selected task (internal)",
+        hidden = true
+    )
+    default String activeTaskName() {
+        return "";
+    }
+
+    @ConfigItem(
+        keyName = "currentGoalPercentage",
+        name = "Current Goal Percentage",
+        description = "Current goal percentage for active task (internal)",
+        hidden = true
+    )
+    default int currentGoalPercentage() {
+        return 30;
+    }
 }
