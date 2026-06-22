@@ -14,10 +14,13 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 
 import com.google.inject.Provides;
 import javax.inject.Inject;
+import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,10 +43,20 @@ public class ChatBetPlugin extends Plugin {
     private OverlayManager overlayManager;
 
     @Inject
+    private ClientToolbar clientToolbar;
+
+    @Inject
     private ChatBetOverlay overlay;
 
     private BetModule activeModule;
     private PickpocketingModule pickpocketingModule;
+
+    private ChatBetPanel panel;
+    private NavigationButton navButton;
+
+    // === Goal System (Phase 1) ===
+    private String activeTaskName = "";
+    private int currentGoalPercentage = 30;
 
     private final AtomicLong attempts = new AtomicLong();
     private final AtomicLong successes = new AtomicLong();
@@ -76,11 +89,24 @@ public class ChatBetPlugin extends Plugin {
         pickpocketingModule = new PickpocketingModule();
         activeModule = pickpocketingModule;
 
+        // Initialize panel
+        panel = new ChatBetPanel(this);
+
+        // Create navigation button for side panel
+        BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB); // placeholder icon
+        navButton = NavigationButton.builder()
+                .tooltip("ChatBet")
+                .icon(icon)
+                .priority(5)
+                .panel(panel)
+                .build();
+
+        clientToolbar.addNavigation(navButton);
+
         if (client != null) {
             int xp = client.getSkillExperience(Skill.THIEVING);
             if (xp > 0) lastThievingXp = xp;
         }
-        firstThievingXpEvent = true;
 
         activePolls.add(new Poll(1, "FixedOdds", "Will you get an ETC before 50 successes?"));
         balances.putIfAbsent("ViraXVespa", 99999L);
@@ -90,7 +116,48 @@ public class ChatBetPlugin extends Plugin {
     @Override
     protected void shutDown() {
         overlayManager.remove(overlay);
+        clientToolbar.removeNavigation(navButton);
         activePolls.clear();
+    }
+
+    // === Goal System Methods (exposed to panel) ===
+    public void setActiveTask(String taskName, int goalPercentage) {
+        this.activeTaskName = taskName;
+        this.currentGoalPercentage = Math.max(5, Math.min(100, goalPercentage));
+        if (panel != null) panel.refresh();
+    }
+
+    public String getActiveTaskName() {
+        return activeTaskName;
+    }
+
+    public int getCurrentGoalPercentage() {
+        return currentGoalPercentage;
+    }
+
+    // === XP Goal Calculation (dynamic) ===
+    public int getXpToGoal() {
+        int goal = config.thievingGoalXp();
+        int targetMark = (int) (goal * (currentGoalPercentage / 100.0));
+
+        if (client != null) {
+            int current = client.getSkillExperience(Skill.THIEVING);
+            if (current > 0) {
+                lastThievingXp = current;
+                return Math.max(0, targetMark - current);
+            }
+        }
+
+        if (lastThievingXp > 0) {
+            return Math.max(0, targetMark - lastThievingXp);
+        }
+
+        return Math.max(0, targetMark);
+    }
+
+    public long getElvesToGoal() {
+        int xpNeeded = getXpToGoal();
+        return xpNeeded > 0 ? (xpNeeded / 200) + 1 : 0;
     }
 
     @Subscribe
@@ -112,12 +179,9 @@ public class ChatBetPlugin extends Plugin {
             activeModule.onGameTick(event);
         }
 
-        // Aggressively try to seed a real XP value if we still don't have one
         if (lastThievingXp <= 0 && client != null) {
             int xp = client.getSkillExperience(Skill.THIEVING);
-            if (xp > 0) {
-                lastThievingXp = xp;
-            }
+            if (xp > 0) lastThievingXp = xp;
         }
     }
 
@@ -177,38 +241,6 @@ public class ChatBetPlugin extends Plugin {
         return activePolls;
     }
 
-    public int getXpToThirtyPct() {
-        int goal = config.thievingGoalXp();
-        int thirtyMark = goal / 3;
-
-        // Strongly prefer live value
-        if (client != null) {
-            int current = client.getSkillExperience(Skill.THIEVING);
-            if (current > 0) {
-                lastThievingXp = current;
-                return Math.max(0, thirtyMark - current);
-            }
-        }
-
-        // Fallback to cache
-        if (lastThievingXp > 0) {
-            return Math.max(0, thirtyMark - lastThievingXp);
-        }
-
-        // Last resort: if we have a goal but no XP data yet, still show something based on goal
-        // (this prevents permanent 0 while waiting for first skill data)
-        if (goal > 0) {
-            return Math.max(0, thirtyMark); // show full remaining until we get real data
-        }
-
-        return 0;
-    }
-
-    public long getElvesToThirtyPct() {
-        int xpNeeded = getXpToThirtyPct();
-        return xpNeeded > 0 ? (xpNeeded / 200) + 1 : 0;
-    }
-
     public long getAttempts() { return attempts.get(); }
     public long getSuccesses() { return successes.get(); }
 
@@ -219,8 +251,8 @@ public class ChatBetPlugin extends Plugin {
 
     public long getEtcsObtained() { return etcsObtained.get(); }
 
-    public double getEstimatedEtcsToThirtyPct() {
-        return getElvesToThirtyPct() / (double) Math.max(1, config.etcRate());
+    public double getEstimatedEtcsToGoal() {
+        return getElvesToGoal() / (double) Math.max(1, config.etcRate());
     }
 
     public double getExpectedEtcs() {
