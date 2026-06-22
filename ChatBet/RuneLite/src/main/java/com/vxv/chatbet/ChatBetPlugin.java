@@ -69,7 +69,6 @@ public class ChatBetPlugin extends Plugin {
     private final AtomicLong successesSinceLastEtc = new AtomicLong();
 
     private int lastThievingXp = -1;
-    private boolean firstThievingXpEvent = true;
 
     private final List<Poll> activePolls = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<String, Long> balances = new ConcurrentHashMap<>();
@@ -106,6 +105,7 @@ public class ChatBetPlugin extends Plugin {
 
         clientToolbar.addNavigation(navButton);
 
+        // Simple initial seed
         if (client != null) {
             int xp = client.getSkillExperience(Skill.THIEVING);
             if (xp > 0) lastThievingXp = xp;
@@ -132,7 +132,7 @@ public class ChatBetPlugin extends Plugin {
             configManager.setConfiguration("chatbet", "currentGoalPercentage", currentGoalPercentage);
         }
 
-        // Force a fresh read of current Thieving XP when goal is set
+        // Force fresh XP read when goal changes
         if (client != null) {
             int xp = client.getSkillExperience(Skill.THIEVING);
             if (xp > 0) lastThievingXp = xp;
@@ -157,7 +157,7 @@ public class ChatBetPlugin extends Plugin {
         int goal = config.thievingGoalXp();
         int targetMark = (int) (goal * (currentGoalPercentage / 100.0));
 
-        // Always try live value first
+        // Prefer live value
         if (client != null) {
             int current = client.getSkillExperience(Skill.THIEVING);
             if (current > 0) {
@@ -166,6 +166,7 @@ public class ChatBetPlugin extends Plugin {
             }
         }
 
+        // Fallback to last known good value from StatChanged
         if (lastThievingXp > 0) {
             return Math.max(0, targetMark - lastThievingXp);
         }
@@ -180,14 +181,8 @@ public class ChatBetPlugin extends Plugin {
 
     @Subscribe
     public void onStatChanged(StatChanged event) {
-        if (event.getSkill() != Skill.THIEVING) return;
-
-        int currentXp = event.getXp();
-        lastThievingXp = currentXp;
-
-        if (firstThievingXpEvent) {
-            firstThievingXpEvent = false;
-            return;
+        if (event.getSkill() == Skill.THIEVING) {
+            lastThievingXp = event.getXp();
         }
     }
 
@@ -197,6 +192,7 @@ public class ChatBetPlugin extends Plugin {
             activeModule.onGameTick(event);
         }
 
+        // Keep trying to get a real value
         if (lastThievingXp <= 0 && client != null) {
             int xp = client.getSkillExperience(Skill.THIEVING);
             if (xp > 0) lastThievingXp = xp;
