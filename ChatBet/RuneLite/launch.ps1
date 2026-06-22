@@ -5,16 +5,33 @@ param(
 
 # === Launch Dev Client ===
 $RuneLiteDir = "$env:LocalAppData\RuneLite"
-$ProjectDir = "C:\Users\Vince\source\repos\GrokSandbox\ChatBet\RuneLite"
+$ProjectDir  = "C:\Users\Vince\source\repos\GrokSandbox\ChatBet\RuneLite"
 $JarPath     = "C:\Users\Vince\source\repos\GrokSandbox\ChatBet\RuneLite\build\libs\chatbet-unspecified-all.jar"
+$Failed      = $false
 
 if ($Build) {
     Set-Location $ProjectDir
-    git pull origin main  
-    .\gradlew.bat clean shadowJar
-    if (!$?) {
-        Write-Host "Build Failed! Exiting! Error Log:"
+    Write-Host "Pulling latest files..."
+    $gitoutput = git pull origin main
+    if ($Verbose) {
+        Write-Host $gitoutput
+    }
+    Write-Host "Building ShadowJar..."
+    $BuildOutput = ""
+    & .\gradlew.bat clean shadowJar 2>&1 | ForEach-Object {
+        if ($_ -match "BUILD FAILED") {
+            $Failed = $true
+        }
+        $BuildOutput += $_
+        $BuildOutput += "`r`n"
+    }
+    if ($Failed) {
+        Write-Host "Build Failed! Exiting! Error Log copied to clipboard!"
+        $BuildOutput | Set-Clipboard
         Exit
+    }
+    else {
+        Write-Host "Build succeeded! Launching..."
     }
 }
 
