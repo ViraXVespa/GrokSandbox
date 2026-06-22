@@ -1,6 +1,7 @@
 package com.vxv.chatbet.modules;
 
 import com.vxv.chatbet.module.BetModule;
+import com.vxv.chatbet.ChatBetPlugin;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
 import lombok.extern.slf4j.Slf4j;
@@ -32,8 +33,10 @@ public class PickpocketingModule implements BetModule {
 
     @Override
     public long getElvesToGoal() {
-        // Delegate back or compute directly
-        return plugin.getElvesToGoal();  // Avoid infinite loop; in practice use plugin's fallback
+        // Compute directly in module (avoids any delegation loop)
+        int xpNeeded = plugin.getXpToGoal();  // Use plugin's XP logic
+        double xpPerElf = 353.3;
+        return xpNeeded > 0 ? (long) Math.ceil(xpNeeded / xpPerElf) : 0;
     }
 
     // TODO: More methods as needed for BetModule interface

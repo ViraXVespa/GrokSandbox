@@ -186,9 +186,9 @@ public class ChatBetPlugin extends Plugin {
     }
 
     public long getElvesToGoal() {
-        // Delegate to active module if available (e.g. PickpocketingModule); fallback here
-        if (activeModule instanceof PickpocketingModule) {
-            return ((PickpocketingModule) activeModule).getElvesToGoal();
+        // Delegate to active module if available (e.g. PickpocketingModule) for specialization; fallback to default calc
+        if (activeModule != null) {
+            return activeModule.getElvesToGoal();
         }
         int xpNeeded = getXpToGoal();
         // Elves give ~353.3 XP each (OSRS pickpocket success on elves)
