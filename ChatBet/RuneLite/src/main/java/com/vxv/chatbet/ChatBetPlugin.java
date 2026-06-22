@@ -76,8 +76,12 @@ public class ChatBetPlugin extends Plugin {
         pickpocketingModule = new PickpocketingModule();
         activeModule = pickpocketingModule;
 
+        // Try to seed the cache immediately
         if (client != null) {
-            lastThievingXp = client.getSkillExperience(Skill.THIEVING);
+            int xp = client.getSkillExperience(Skill.THIEVING);
+            if (xp > 0) {
+                lastThievingXp = xp;
+            }
         }
         firstThievingXpEvent = true;
 
@@ -104,8 +108,6 @@ public class ChatBetPlugin extends Plugin {
             return;
         }
 
-        // Only update cache for XP remaining display - do NOT increment counters here
-        // (chat message detection is now the primary source to avoid double-counting)
         lastThievingXp = currentXp;
     }
 
@@ -113,6 +115,14 @@ public class ChatBetPlugin extends Plugin {
     public void onGameTick(GameTick event) {
         if (activeModule != null) {
             activeModule.onGameTick(event);
+        }
+
+        // Keep cache fresh if it was never properly initialized
+        if (lastThievingXp <= 0 && client != null) {
+            int xp = client.getSkillExperience(Skill.THIEVING);
+            if (xp > 0) {
+                lastThievingXp = xp;
+            }
         }
     }
 
@@ -148,7 +158,6 @@ public class ChatBetPlugin extends Plugin {
             }
         }
 
-        // Precise detection based on actual in-game messages
         if (lower.contains("you pick the elf's pocket")) {
             successes.incrementAndGet();
             attempts.incrementAndGet();
@@ -177,13 +186,16 @@ public class ChatBetPlugin extends Plugin {
         int goal = config.thievingGoalXp();
         int thirtyMark = goal / 3;
 
+        // Always prefer live value from client
         if (client != null) {
             int current = client.getSkillExperience(Skill.THIEVING);
             if (current > 0) {
+                lastThievingXp = current; // keep cache fresh
                 return Math.max(0, thirtyMark - current);
             }
         }
 
+        // Fallback to cached value
         if (lastThievingXp > 0) {
             return Math.max(0, thirtyMark - lastThievingXp);
         }
