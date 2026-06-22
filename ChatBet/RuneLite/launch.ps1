@@ -12,6 +12,10 @@ if ($Build) {
     Set-Location $ProjectDir
     git pull origin main  
     .\gradlew.bat clean shadowJar
+    if (!$?) {
+        Write-Host "Build Failed! Exiting!"
+        Exit
+    }
 }
 
 Set-Location $RuneLiteDir
@@ -29,14 +33,14 @@ $javaArgs = @(
 )
 
 & java @javaArgs 2>&1 | ForEach-Object {
-    if ($_ -match "chatbet|ChatBet") {
-        Write-Host $_ -ForegroundColor Green
-    }
-    elseif ($_ -match "ERROR|Exception|Failed") {
+    if ($_ -match "ERROR|Exception|Failed") {
         Write-Host $_ -ForegroundColor Red
     }
     elseif ($_ -match "WARN") {
         Write-Host $_ -ForegroundColor Yellow
+    }
+    elseif ($_ -match "chatbet|ChatBet") {
+        Write-Host $_ -ForegroundColor Green
     }
     elseif ($Verbose) {
         Write-Host $_
