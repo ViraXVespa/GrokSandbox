@@ -131,20 +131,12 @@ public class ChatBetPlugin extends Plugin {
         this.activeTaskName = taskName;
         this.currentGoalPercentage = Math.max(5, Math.min(100, goalPercentage));
 
-        // Persist using ConfigManager
         if (configManager != null) {
             configManager.setConfiguration("chatbet", "activeTaskName", activeTaskName);
             configManager.setConfiguration("chatbet", "currentGoalPercentage", currentGoalPercentage);
         }
 
         if (panel != null) panel.refresh();
-
-        // Try to refresh overlay
-        if (overlayManager != null && overlay != null) {
-            try {
-                overlayManager.requestRefresh(overlay);
-            } catch (Exception ignored) {}
-        }
     }
 
     public String getActiveTaskName() {
