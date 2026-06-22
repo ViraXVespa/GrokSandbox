@@ -57,7 +57,6 @@ public class ChatBetPlugin extends Plugin {
     private ChatBetPanel panel;
     private NavigationButton navButton;
 
-    // === Goal System (Phase 1) ===
     private String activeTaskName = "";
     private int currentGoalPercentage = 30;
 
@@ -133,9 +132,14 @@ public class ChatBetPlugin extends Plugin {
             configManager.setConfiguration("chatbet", "currentGoalPercentage", currentGoalPercentage);
         }
 
+        // Force a fresh read of current Thieving XP when goal is set
+        if (client != null) {
+            int xp = client.getSkillExperience(Skill.THIEVING);
+            if (xp > 0) lastThievingXp = xp;
+        }
+
         if (panel != null) panel.refresh();
 
-        // Safe way to encourage overlay repaint
         if (overlay != null) {
             overlay.setPosition(overlay.getPosition());
         }
@@ -153,6 +157,7 @@ public class ChatBetPlugin extends Plugin {
         int goal = config.thievingGoalXp();
         int targetMark = (int) (goal * (currentGoalPercentage / 100.0));
 
+        // Always try live value first
         if (client != null) {
             int current = client.getSkillExperience(Skill.THIEVING);
             if (current > 0) {
