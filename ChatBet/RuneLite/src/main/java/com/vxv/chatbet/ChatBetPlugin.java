@@ -8,7 +8,10 @@ import net.runelite.api.events.*;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.xptracker.XpTrackerPlugin;
+import net.runelite.client.plugins.xptracker.XpTrackerService;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -28,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
     description = "Tracks thieving events and enables chat betting during streams",
     tags = {"thieving", "bet", "elves", "xp tracker"}
 )
+@PluginDependency(XpTrackerPlugin.class)
 public class ChatBetPlugin extends Plugin {
 
     @Inject private Client client;
@@ -36,6 +40,7 @@ public class ChatBetPlugin extends Plugin {
     @Inject private ChatBetOverlay overlay;
     @Inject private ClientToolbar clientToolbar;
     @Inject private ChatBetPanel chatBetPanel;
+    @Inject private XpTrackerService xpTrackerService;
 
     private NavigationButton navButton;
     private final BetManager betManager = new BetManager();
@@ -142,14 +147,25 @@ public class ChatBetPlugin extends Plugin {
     }
 
     public int getXpToGoal() {
-        int goal = config.thievingGoalXp();
-        int targetMark = (int) (goal * (currentGoalPercentage / 100.0));
-        int current = client != null ? client.getSkillExperience(Skill.THIEVING) : lastThievingXp;
-
-        if (current > 0) {
-            return Math.max(0, targetMark - current);
+        // Use real XP Tracker goal (via XpTrackerService) instead of static config
+        int remainingToFullGoal = 0;
+        if (xpTrackerService != null) {
+            remainingToFullGoal = xpTrackerService.getEndGoalXp(Skill.THIEVING);
+        } else if (client != null) {
+            // Fallback: compute remaining using config goal (legacy behavior)
+            int current = client.getSkillExperience(Skill.THIEVING);
+            if (current > 0) {
+                remainingToFullGoal = Math.max(0, config.thievingGoalXp() - current);
+            } else {
+                remainingToFullGoal = Math.max(0, config.thievingGoalXp() - lastThievingXp);
+            }
+        } else {
+            remainingToFullGoal = Math.max(0, config.thievingGoalXp() - lastThievingXp);
         }
-        return Math.max(0, targetMark - lastThievingXp);
+
+        // Apply current task's goal percentage (e.g. 30% of the way to the XP Tracker goal)
+        int xpToSubGoal = (int) (remainingToFullGoal * (currentGoalPercentage / 100.0));
+        return Math.max(0, xpToSubGoal);
     }
 
     public long getElvesToGoal() {
