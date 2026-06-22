@@ -104,17 +104,8 @@ public class ChatBetPlugin extends Plugin {
             return;
         }
 
-        if (lastThievingXp != -1 && currentXp > lastThievingXp) {
-            successes.incrementAndGet();
-            attempts.incrementAndGet();
-            successesSinceLastEtc.incrementAndGet();
-            attemptsSinceLastEtc.incrementAndGet();
-
-            if (activeModule instanceof PickpocketingModule) {
-                ((PickpocketingModule) activeModule).recordPickpocket(true);
-            }
-        }
-
+        // Only update cache for XP remaining display - do NOT increment counters here
+        // (chat message detection is now the primary source to avoid double-counting)
         lastThievingXp = currentXp;
     }
 
