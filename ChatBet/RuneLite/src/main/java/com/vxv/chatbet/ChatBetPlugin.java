@@ -147,25 +147,33 @@ public class ChatBetPlugin extends Plugin {
     }
 
     public int getXpToGoal() {
-        // Use real XP Tracker goal (via XpTrackerService) instead of static config
-        int remainingToFullGoal = 0;
-        if (xpTrackerService != null) {
-            remainingToFullGoal = xpTrackerService.getEndGoalXp(Skill.THIEVING);
-        } else if (client != null) {
-            // Fallback: compute remaining using config goal (legacy behavior)
-            int current = client.getSkillExperience(Skill.THIEVING);
+        if (xpTrackerService == null) {
+            // Fallback to legacy config-based logic
+            int goal = config.thievingGoalXp();
+            int targetMark = (int) (goal * (currentGoalPercentage / 100.0));
+            int current = client != null ? client.getSkillExperience(Skill.THIEVING) : lastThievingXp;
             if (current > 0) {
-                remainingToFullGoal = Math.max(0, config.thievingGoalXp() - current);
-            } else {
-                remainingToFullGoal = Math.max(0, config.thievingGoalXp() - lastThievingXp);
+                return Math.max(0, targetMark - current);
             }
-        } else {
-            remainingToFullGoal = Math.max(0, config.thievingGoalXp() - lastThievingXp);
+            return Math.max(0, targetMark - lastThievingXp);
         }
 
-        // Apply current task's goal percentage (e.g. 30% of the way to the XP Tracker goal)
-        int xpToSubGoal = (int) (remainingToFullGoal * (currentGoalPercentage / 100.0));
-        return Math.max(0, xpToSubGoal);
+        int startGoalXp = xpTrackerService.getStartGoalXp(Skill.THIEVING);
+        int remainingToEndGoal = xpTrackerService.getEndGoalXp(Skill.THIEVING);
+        int currentXp = client != null ? client.getSkillExperience(Skill.THIEVING) : lastThievingXp;
+        int endGoalXp = currentXp + remainingToEndGoal;
+
+        // If no valid goal is set in XP Tracker (e.g. start <= 0, or already at/past end, or remaining <= 0)
+        // fall back to percentage of remaining (treats current as effective start)
+        if (startGoalXp <= 0 || endGoalXp <= startGoalXp || remainingToEndGoal <= 0) {
+            return (int) (remainingToEndGoal * (currentGoalPercentage / 100.0));
+        }
+
+        // Proper calculation: target XP at the specified percentage progress *through the full goal span*
+        // This accounts for the starting XP of the goal set in the XP Tracker
+        double progress = currentGoalPercentage / 100.0;
+        int targetXp = (int) (startGoalXp + (endGoalXp - startGoalXp) * progress);
+        return Math.max(0, targetXp - currentXp);
     }
 
     public long getElvesToGoal() {
