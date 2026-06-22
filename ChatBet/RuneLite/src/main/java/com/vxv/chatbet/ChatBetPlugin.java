@@ -92,11 +92,9 @@ public class ChatBetPlugin extends Plugin {
         pickpocketingModule = new PickpocketingModule();
         activeModule = pickpocketingModule;
 
-        // Load persisted goal state
         activeTaskName = config.activeTaskName();
         currentGoalPercentage = config.currentGoalPercentage();
 
-        // Initialize panel
         panel = new ChatBetPanel(this);
 
         BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
@@ -126,7 +124,6 @@ public class ChatBetPlugin extends Plugin {
         activePolls.clear();
     }
 
-    // === Goal System Methods ===
     public void setActiveTask(String taskName, int goalPercentage) {
         this.activeTaskName = taskName;
         this.currentGoalPercentage = Math.max(5, Math.min(100, goalPercentage));
@@ -137,6 +134,11 @@ public class ChatBetPlugin extends Plugin {
         }
 
         if (panel != null) panel.refresh();
+
+        // Safe way to encourage overlay repaint
+        if (overlay != null) {
+            overlay.setPosition(overlay.getPosition());
+        }
     }
 
     public String getActiveTaskName() {
@@ -147,7 +149,6 @@ public class ChatBetPlugin extends Plugin {
         return currentGoalPercentage;
     }
 
-    // === XP Goal Calculation (dynamic) ===
     public int getXpToGoal() {
         int goal = config.thievingGoalXp();
         int targetMark = (int) (goal * (currentGoalPercentage / 100.0));
