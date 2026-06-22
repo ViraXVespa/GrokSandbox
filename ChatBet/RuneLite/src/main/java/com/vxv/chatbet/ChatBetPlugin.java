@@ -115,7 +115,11 @@ public class ChatBetPlugin extends Plugin {
     @Subscribe
     public void onStatChanged(StatChanged event) {
         if (event.getSkill() == Skill.THIEVING) {
-            lastThievingXp = event.getXp();
+            int currentXp = event.getXp();
+            if (lastThievingXp != -1 && currentXp > lastThievingXp) {
+                attempts.incrementAndGet();
+            }
+            lastThievingXp = currentXp;
             if (activeModule != null) activeModule.onStatChanged(event);
         }
     }
@@ -146,7 +150,13 @@ public class ChatBetPlugin extends Plugin {
         return client;
     }
 
-    public int getXpToGoal() { return 0; } // TODO full impl
+    public int getXpToGoal() {
+        if (xpTrackerService == null) return 0;
+        int startXp = xpTrackerService.getStartXp(Skill.THIEVING);
+        int currentXp = client.getSkillExperience(Skill.THIEVING);
+        int goalXp = (int) (startXp + (currentXp - startXp) * (100.0 / currentGoalPercentage));
+        return Math.max(0, goalXp - currentXp);
+    }
 
     public long getElvesToGoal() {
         if (activeModule != null) return activeModule.getElvesToGoal();
