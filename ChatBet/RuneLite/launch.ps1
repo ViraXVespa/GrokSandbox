@@ -11,10 +11,9 @@ $JarPath     = "C:\Users\Vince\source\repos\GrokSandbox\ChatBet\RuneLite\build\l
 if ($Build) {
     Set-Location $ProjectDir
     git pull origin main  
-    .\gradlew.bat clean shadowJar | -OutVariable output
+    .\gradlew.bat clean shadowJar
     if (!$?) {
         Write-Host "Build Failed! Exiting! Error Log:"
-        Write-Host $output
         Exit
     }
 }
