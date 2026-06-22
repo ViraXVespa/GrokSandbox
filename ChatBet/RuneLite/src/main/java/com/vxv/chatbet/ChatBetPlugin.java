@@ -40,6 +40,9 @@ public class ChatBetPlugin extends Plugin {
     private ChatBetConfig config;
 
     @Inject
+    private ConfigManager configManager;
+
+    @Inject
     private OverlayManager overlayManager;
 
     @Inject
@@ -89,11 +92,14 @@ public class ChatBetPlugin extends Plugin {
         pickpocketingModule = new PickpocketingModule();
         activeModule = pickpocketingModule;
 
+        // Load persisted goal state
+        activeTaskName = config.activeTaskName();
+        currentGoalPercentage = config.currentGoalPercentage();
+
         // Initialize panel
         panel = new ChatBetPanel(this);
 
-        // Create navigation button for side panel
-        BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB); // placeholder icon
+        BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
         navButton = NavigationButton.builder()
                 .tooltip("ChatBet")
                 .icon(icon)
@@ -120,11 +126,25 @@ public class ChatBetPlugin extends Plugin {
         activePolls.clear();
     }
 
-    // === Goal System Methods (exposed to panel) ===
+    // === Goal System Methods ===
     public void setActiveTask(String taskName, int goalPercentage) {
         this.activeTaskName = taskName;
         this.currentGoalPercentage = Math.max(5, Math.min(100, goalPercentage));
+
+        // Persist using ConfigManager
+        if (configManager != null) {
+            configManager.setConfiguration("chatbet", "activeTaskName", activeTaskName);
+            configManager.setConfiguration("chatbet", "currentGoalPercentage", currentGoalPercentage);
+        }
+
         if (panel != null) panel.refresh();
+
+        // Try to refresh overlay
+        if (overlayManager != null && overlay != null) {
+            try {
+                overlayManager.requestRefresh(overlay);
+            } catch (Exception ignored) {}
+        }
     }
 
     public String getActiveTaskName() {
