@@ -1,7 +1,8 @@
 param(
     [switch]$Verbose,
     [switch]$Build,
-    [switch]$NoGit
+    [switch]$NoGit,
+    [switch]$ExpectGit
 )
 
 # === Launch Dev Client ===
@@ -14,7 +15,18 @@ if ($Build) {
     Set-Location $ProjectDir
     if (!$NoGit) {
         Write-Host "Pulling latest files..."
-        git pull origin main
+        if ($ExpectGit) {
+            $output = ""
+            & git pull origin main 2>&1 | ForEach-Object {
+                if ($_ -match "Already up to date.") {
+                    Write-Host "No Git update detected... Exiting."
+                    Exit
+                }
+            }
+        }
+        else {
+            git pull origin main
+        }
     }
     Write-Host "Building ShadowJar..."
     $BuildOutput = ""
