@@ -157,7 +157,7 @@ public class ChatBetPlugin extends Plugin {
             }
         }
 
-        // Pickpocket success / failure detection
+        // Pickpocket success / failure
         if (lower.contains("pick the pocket of the elf") || lower.contains("pickpocket the elf")) {
             successes.incrementAndGet();
             attempts.incrementAndGet();
@@ -168,7 +168,9 @@ public class ChatBetPlugin extends Plugin {
                 ((PickpocketingModule) activeModule).recordPickpocket(true);
             }
         } 
-        else if (lower.contains("fail to pick the pocket")) {
+        else if (lower.contains("fail to pick the pocket") ||
+                 lower.contains("been stunned") ||
+                 lower.contains("you're stunned")) {
             attempts.incrementAndGet();
             attemptsSinceLastEtc.incrementAndGet();
 
@@ -195,7 +197,7 @@ public class ChatBetPlugin extends Plugin {
 
         if (lastThievingXp > 0) {
             return Math.max(0, thirtyMark - lastThievingXp);
-        }
+            }
 
         return 0;
     }
