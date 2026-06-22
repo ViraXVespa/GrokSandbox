@@ -80,6 +80,11 @@ public class ChatBetPlugin extends Plugin {
         pickpocketingModule = new PickpocketingModule();
         activeModule = pickpocketingModule;
 
+        // Initialize XP cache if possible
+        if (client != null) {
+            lastThievingXp = client.getSkillExperience(Skill.THIEVING);
+        }
+
         // Demo data so the overlay immediately shows something useful
         activePolls.add(new Poll(1, "FixedOdds", "Will you get an ETC before 50 successes?"));
         balances.putIfAbsent("ViraXVespa", 99999L);
@@ -97,7 +102,6 @@ public class ChatBetPlugin extends Plugin {
         if (event.getSkill() == Skill.THIEVING) {
             int currentXp = event.getXp();
             if (lastThievingXp != -1 && currentXp > lastThievingXp) {
-                // Rough proxy: gained XP = successful pickpocket
                 successes.incrementAndGet();
                 attempts.incrementAndGet();
                 successesSinceLastEtc.incrementAndGet();
@@ -137,10 +141,8 @@ public class ChatBetPlugin extends Plugin {
         String sender = event.getName();
 
         if (lower.startsWith("!chatbet")) {
-            // Basic implementation: create a new poll
             int newId = activePolls.size() + 1;
             activePolls.add(new Poll(newId, "FixedOdds", "Will you get an ETC in the next 100 pickpockets?"));
-            // Future: open proper dialog
         }
         else if (lower.startsWith("!balance")) {
             recentBalanceRequests.add(0, sender);
@@ -149,11 +151,13 @@ public class ChatBetPlugin extends Plugin {
             }
         }
         else if (lower.startsWith("!bet ")) {
-            // TODO: full betting logic
+            // TODO
         }
 
-        // Basic pickpocket success/failure detection
-        if (msg.contains("pick the pocket of the Elf") || msg.contains("pickpocket the elf")) {
+        // Improved pickpocket detection
+        String lowerMsg = msg.toLowerCase();
+
+        if (lowerMsg.contains("pick the pocket of the elf") || lowerMsg.contains("pickpocket the elf")) {
             successes.incrementAndGet();
             attempts.incrementAndGet();
             successesSinceLastEtc.incrementAndGet();
@@ -162,7 +166,10 @@ public class ChatBetPlugin extends Plugin {
             if (activeModule instanceof PickpocketingModule) {
                 ((PickpocketingModule) activeModule).recordPickpocket(true);
             }
-        } else if (msg.contains("fail to pick the pocket") || msg.contains("You fail to pick")) {
+        } 
+        else if (lowerMsg.contains("fail to pick the pocket") || 
+                 lowerMsg.contains("you fail to pick") ||
+                 lowerMsg.contains("stunned")) {
             attempts.incrementAndGet();
             attemptsSinceLastEtc.incrementAndGet();
 
@@ -172,7 +179,7 @@ public class ChatBetPlugin extends Plugin {
         }
     }
 
-    // === Getters expected by ChatBetOverlay ===
+    // === Getters ===
 
     public List<Poll> getActivePolls() {
         return activePolls;
@@ -180,11 +187,11 @@ public class ChatBetPlugin extends Plugin {
 
     public int getXpToThirtyPct() {
         if (client == null) {
-            return 0;
+            return lastThievingXp > 0 ? Math.max(0, (config.thievingGoalXp() / 3) - lastThievingXp) : 0;
         }
         int current = client.getSkillExperience(Skill.THIEVING);
         if (current <= 0 && lastThievingXp > 0) {
-            current = lastThievingXp; // fallback to cached
+            current = lastThievingXp;
         }
         int goal = config.thievingGoalXp();
         int thirtyMark = goal / 3;
@@ -264,7 +271,6 @@ public class ChatBetPlugin extends Plugin {
     public long getDodgySinceLastEtc() { return 0; }
     public long getWineSinceLastEtc() { return 0; }
 
-    // Inner model
     static class Poll {
         private final int id;
         private final String type;
