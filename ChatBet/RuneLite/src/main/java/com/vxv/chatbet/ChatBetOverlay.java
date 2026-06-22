@@ -65,15 +65,16 @@ public class ChatBetOverlay extends Overlay
             panelComponent.getChildren().add(LineComponent.builder().left("").build()); // spacer
         }
 
-        // XP Goal Section
+        // XP Goal Section (now dynamic)
+        int goalPct = plugin.getCurrentGoalPercentage();
         panelComponent.getChildren().add(LineComponent.builder()
-            .left("XP to 30% Goal Mark")
-            .right(plugin.getXpToThirtyPct() + " XP")
+            .left("XP to " + goalPct + "% Goal")
+            .right(plugin.getXpToGoal() + " XP")
             .build());
 
         panelComponent.getChildren().add(LineComponent.builder()
-            .left("Successes Remaining")
-            .right(String.valueOf(plugin.getElvesToThirtyPct()))
+            .left("Elves to Goal")
+            .right(String.valueOf(plugin.getElvesToGoal()))
             .build());
 
         panelComponent.getChildren().add(LineComponent.builder().left("").build()); // spacer
@@ -104,8 +105,8 @@ public class ChatBetOverlay extends Overlay
             .build());
 
         panelComponent.getChildren().add(LineComponent.builder()
-            .left("Est. ETCs by 30% Mark")
-            .right(String.format("%.2f", plugin.getEstimatedEtcsToThirtyPct()))
+            .left("Est. ETCs to Goal")
+            .right(String.format("%.2f", plugin.getEstimatedEtcsToGoal()))
             .build());
 
         panelComponent.getChildren().add(LineComponent.builder()
@@ -152,14 +153,13 @@ public class ChatBetOverlay extends Overlay
             .right(String.valueOf(plugin.getWineConsumed()))
             .build());
 
-        // ==================== Token Balances ====================
+        // Token Balances
         panelComponent.getChildren().add(LineComponent.builder().left("").build());
 
         panelComponent.getChildren().add(TitleComponent.builder()
             .text("Top Balances")
             .build());
 
-        // Top 3
         var topBalances = plugin.getTopBalances(3);
         int rank = 1;
         for (var entry : topBalances) {
@@ -170,7 +170,6 @@ public class ChatBetOverlay extends Overlay
             rank++;
         }
 
-        // Recent balance requests
         var recentRequests = plugin.getRecentBalanceRequests();
         if (!recentRequests.isEmpty()) {
             panelComponent.getChildren().add(LineComponent.builder().left("").build());
