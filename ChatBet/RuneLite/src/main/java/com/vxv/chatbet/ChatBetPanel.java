@@ -2,6 +2,7 @@ package com.vxv.chatbet;
 
 import net.runelite.client.ui.PluginPanel;
 
+import javax.inject.Inject;
 import javax.swing.*;
 import java.awt.*;
 
