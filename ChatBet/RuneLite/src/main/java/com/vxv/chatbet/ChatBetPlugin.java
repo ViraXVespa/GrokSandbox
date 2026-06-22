@@ -21,6 +21,7 @@ import com.vxv.chatbet.bet.BetManager;
 import com.vxv.chatbet.bet.Poll;
 import com.vxv.chatbet.ui.BetCreationDialog;
 import com.vxv.chatbet.module.BetModule;
+import com.vxv.chatbet.modules.PickpocketingModule;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -141,43 +142,58 @@ public class ChatBetPlugin extends Plugin {
         }
 
         if (config.showDebugVars()) {
-            log.info("[ChatBet Debug] lastThievingXp={}, currentXp={}, xpToGoal={}, goalPct={}", 
-                lastThievingXp, client != null ? client.getSkillExperience(Skill.THIEVING) : -1, getXpToGoal(), currentGoalPercentage);
+            log.info("[ChatBet Debug] lastThievingXp={}, currentXp={}, xpToGoal={}, elvesToGoal={}, goalPct={}, startGoal={}, endGoal={}", 
+                lastThievingXp, getCurrentXp(), getXpToGoal(), getElvesToGoal(), currentGoalPercentage,
+                xpTrackerService != null ? xpTrackerService.getStartGoalXp(Skill.THIEVING) : -1,
+                xpTrackerService != null ? xpTrackerService.getEndGoalXp(Skill.THIEVING) : -1);
         }
     }
 
     public int getXpToGoal() {
-        if (xpTrackerService == null) {
-            // Fallback to legacy config-based logic
-            int goal = config.thievingGoalXp();
-            int targetMark = (int) (goal * (currentGoalPercentage / 100.0));
-            int current = client != null ? client.getSkillExperience(Skill.THIEVING) : lastThievingXp;
-            if (current > 0) {
-                return Math.max(0, targetMark - current);
+        int currentXp = getCurrentXp();
+        if (xpTrackerService != null) {
+            int startGoal = xpTrackerService.getStartGoalXp(Skill.THIEVING);
+            int endGoal = xpTrackerService.getEndGoalXp(Skill.THIEVING);
+
+            if (startGoal > 0 && endGoal > startGoal && currentXp <= endGoal) {
+                // Proper linear interpolation across the full goal span set in XP Tracker
+                long goalSpan = (long) endGoal - startGoal;
+                long targetXp = startGoal + (long) (goalSpan * (currentGoalPercentage / 100.0));
+                return (int) Math.max(0, targetXp - currentXp);
             }
-            return Math.max(0, targetMark - lastThievingXp);
         }
 
-        int startGoalXp = xpTrackerService.getStartGoalXp(Skill.THIEVING);
-        int endGoalXp = xpTrackerService.getEndGoalXp(Skill.THIEVING);  // absolute goal end XP (per snapshot fields)
-        int currentXp = client != null ? client.getSkillExperience(Skill.THIEVING) : lastThievingXp;
-
-        // If no valid goal set or already reached/past end
-        if (startGoalXp <= 0 || endGoalXp <= startGoalXp || endGoalXp <= currentXp) {
-            int remaining = Math.max(0, endGoalXp - currentXp);
-            return (int) (remaining * (currentGoalPercentage / 100.0));
+        // Fallback: legacy config or simple remaining
+        int configGoal = config.thievingGoalXp();
+        if (client != null) {
+            int current = client.getSkillExperience(Skill.THIEVING);
+            if (current > 0) {
+                return Math.max(0, (int) (configGoal * (currentGoalPercentage / 100.0) - current));
+            }
         }
+        return Math.max(0, (int) (configGoal * (currentGoalPercentage / 100.0) - lastThievingXp));
+    }
 
-        // Target at percentage progress through the full goal span (start to end)
-        // Correctly accounts for goal starting XP
-        double progress = currentGoalPercentage / 100.0;
-        int targetXp = (int) (startGoalXp + (endGoalXp - startGoalXp) * progress);
-        return Math.max(0, targetXp - currentXp);
+    private int getCurrentXp() {
+        if (client != null) {
+            int xp = client.getSkillExperience(Skill.THIEVING);
+            if (xp > 0) {
+                lastThievingXp = xp;
+                return xp;
+            }
+        }
+        return lastThievingXp > 0 ? lastThievingXp : 0;
     }
 
     public long getElvesToGoal() {
+        // Delegate to active module if available (e.g. PickpocketingModule); fallback here
+        if (activeModule instanceof PickpocketingModule) {
+            return ((PickpocketingModule) activeModule).getElvesToGoal();
+        }
         int xpNeeded = getXpToGoal();
-        return xpNeeded > 0 ? (xpNeeded / 200) + 1 : 0;
+        // Elves give ~353.3 XP each (OSRS pickpocket success on elves)
+        double xpPerElf = 353.3;
+        return xpNeeded > 0 ? (long) Math.ceil(xpNeeded / xpPerElf) : 0;
     }
 
     // All getters the overlay expects
