@@ -4,8 +4,6 @@ import com.vxv.chatbet.module.BetModule;
 import com.vxv.chatbet.module.PickpocketingModule;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.InventoryID;
-import net.runelite.api.ItemContainer;
 import net.runelite.api.Skill;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
@@ -47,7 +45,6 @@ public class ChatBetPlugin extends Plugin {
     private BetModule activeModule;
     private PickpocketingModule pickpocketingModule;
 
-    // === Core tracking counters ===
     private final AtomicLong attempts = new AtomicLong();
     private final AtomicLong successes = new AtomicLong();
     private final AtomicLong dodgyConsumed = new AtomicLong();
@@ -57,8 +54,8 @@ public class ChatBetPlugin extends Plugin {
     private final AtomicLong successesSinceLastEtc = new AtomicLong();
 
     private int lastThievingXp = -1;
+    private boolean firstThievingXpEvent = true;
 
-    // === Betting / UI state ===
     private final List<Poll> activePolls = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<String, Long> balances = new ConcurrentHashMap<>();
     private final List<String> recentBalanceRequests = new CopyOnWriteArrayList<>();
@@ -68,8 +65,7 @@ public class ChatBetPlugin extends Plugin {
     }
 
     @Provides
-    ChatBetConfig provideConfig(ConfigManager configManager)
-    {
+    ChatBetConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(ChatBetConfig.class);
     }
 
@@ -80,12 +76,11 @@ public class ChatBetPlugin extends Plugin {
         pickpocketingModule = new PickpocketingModule();
         activeModule = pickpocketingModule;
 
-        // Initialize XP cache if possible
         if (client != null) {
             lastThievingXp = client.getSkillExperience(Skill.THIEVING);
         }
+        firstThievingXpEvent = true;
 
-        // Demo data so the overlay immediately shows something useful
         activePolls.add(new Poll(1, "FixedOdds", "Will you get an ETC before 50 successes?"));
         balances.putIfAbsent("ViraXVespa", 99999L);
         balances.putIfAbsent("testviewer", 2500L);
@@ -99,20 +94,28 @@ public class ChatBetPlugin extends Plugin {
 
     @Subscribe
     public void onStatChanged(StatChanged event) {
-        if (event.getSkill() == Skill.THIEVING) {
-            int currentXp = event.getXp();
-            if (lastThievingXp != -1 && currentXp > lastThievingXp) {
-                successes.incrementAndGet();
-                attempts.incrementAndGet();
-                successesSinceLastEtc.incrementAndGet();
-                attemptsSinceLastEtc.incrementAndGet();
+        if (event.getSkill() != Skill.THIEVING) return;
 
-                if (activeModule instanceof PickpocketingModule) {
-                    ((PickpocketingModule) activeModule).recordPickpocket(true);
-                }
-            }
+        int currentXp = event.getXp();
+
+        if (firstThievingXpEvent) {
             lastThievingXp = currentXp;
+            firstThievingXpEvent = false;
+            return; // don't increment on the very first event after login
         }
+
+        if (lastThievingXp != -1 && currentXp > lastThievingXp) {
+            successes.incrementAndGet();
+            attempts.incrementAndGet();
+            successesSinceLastEtc.incrementAndGet();
+            attemptsSinceLastEtc.incrementAndGet();
+
+            if (activeModule instanceof PickpocketingModule) {
+                ((PickpocketingModule) activeModule).recordPickpocket(true);
+            }
+        }
+
+        lastThievingXp = currentXp;
     }
 
     @Subscribe
@@ -131,8 +134,11 @@ public class ChatBetPlugin extends Plugin {
 
     @Subscribe
     public void onChatMessage(ChatMessage event) {
-        if (event.getType() != ChatMessageType.PUBLICCHAT &&
-            event.getType() != ChatMessageType.FRIENDSCHAT) {
+        ChatMessageType type = event.getType();
+        if (type != ChatMessageType.PUBLICCHAT &&
+            type != ChatMessageType.FRIENDSCHAT &&
+            type != ChatMessageType.GAMEMESSAGE &&
+            type != ChatMessageType.SPAM) {
             return;
         }
 
@@ -150,14 +156,9 @@ public class ChatBetPlugin extends Plugin {
                 recentBalanceRequests.remove(recentBalanceRequests.size() - 1);
             }
         }
-        else if (lower.startsWith("!bet ")) {
-            // TODO
-        }
 
-        // Improved pickpocket detection
-        String lowerMsg = msg.toLowerCase();
-
-        if (lowerMsg.contains("pick the pocket of the elf") || lowerMsg.contains("pickpocket the elf")) {
+        // Pickpocket success / failure (now listens to GAMEMESSAGE + SPAM too)
+        if (lower.contains("pick the pocket of the elf") || lower.contains("pickpocket the elf")) {
             successes.incrementAndGet();
             attempts.incrementAndGet();
             successesSinceLastEtc.incrementAndGet();
@@ -167,9 +168,9 @@ public class ChatBetPlugin extends Plugin {
                 ((PickpocketingModule) activeModule).recordPickpocket(true);
             }
         } 
-        else if (lowerMsg.contains("fail to pick the pocket") || 
-                 lowerMsg.contains("you fail to pick") ||
-                 lowerMsg.contains("stunned")) {
+        else if (lower.contains("fail to pick the pocket") ||
+                 lower.contains("you fail to pick") ||
+                 lower.contains("stunned")) {
             attempts.incrementAndGet();
             attemptsSinceLastEtc.incrementAndGet();
 
@@ -179,23 +180,27 @@ public class ChatBetPlugin extends Plugin {
         }
     }
 
-    // === Getters ===
-
     public List<Poll> getActivePolls() {
         return activePolls;
     }
 
     public int getXpToThirtyPct() {
-        if (client == null) {
-            return lastThievingXp > 0 ? Math.max(0, (config.thievingGoalXp() / 3) - lastThievingXp) : 0;
-        }
-        int current = client.getSkillExperience(Skill.THIEVING);
-        if (current <= 0 && lastThievingXp > 0) {
-            current = lastThievingXp;
-        }
         int goal = config.thievingGoalXp();
         int thirtyMark = goal / 3;
-        return Math.max(0, thirtyMark - current);
+
+        if (client != null) {
+            int current = client.getSkillExperience(Skill.THIEVING);
+            if (current > 0) {
+                return Math.max(0, thirtyMark - current);
+            }
+        }
+
+        // Fallback to cached value
+        if (lastThievingXp > 0) {
+            return Math.max(0, thirtyMark - lastThievingXp);
+        }
+
+        return 0;
     }
 
     public long getElvesToThirtyPct() {
