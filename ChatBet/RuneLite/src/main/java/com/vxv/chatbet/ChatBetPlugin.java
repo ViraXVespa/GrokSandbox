@@ -142,28 +142,75 @@ public class ChatBetPlugin extends Plugin {
         }
     }
 
-    public int getXpToGoal() { /* existing logic */ return 0; } // stub for brevity, keep full in actual
-    private int getCurrentXp() { /* ... */ return 0; }
+    public Client getClient() {
+        return client;
+    }
+
+    public int getXpToGoal() { return 0; } // TODO full impl
 
     public long getElvesToGoal() {
         if (activeModule != null) return activeModule.getElvesToGoal();
         return 0;
     }
 
-    // Delegate getters to activeModule for Pickpocketing specifics
+    // Full delegation for PickpocketingModule getters to fix Overlay
     public int getEtcsObtained() {
-        return activeModule instanceof PickpocketingModule ? ((PickpocketingModule) activeModule).getEtcsObtained() : 0;
+        if (activeModule instanceof PickpocketingModule pm) return pm.getEtcsObtained();
+        return 0;
     }
-    // Similar delegations for other getters...
+
+    public int getAttemptsSinceLastEtc() {
+        if (activeModule instanceof PickpocketingModule pm) return pm.getAttemptsSinceLastEtc();
+        return 0;
+    }
+
+    public int getSuccessesSinceLastEtc() {
+        if (activeModule instanceof PickpocketingModule pm) return pm.getSuccessesSinceLastEtc();
+        return 0;
+    }
+
+    public long getDodgyConsumed() {
+        if (activeModule instanceof PickpocketingModule pm) return pm.getDodgyConsumed();
+        return 0;
+    }
+
+    public long getWineConsumed() {
+        if (activeModule instanceof PickpocketingModule pm) return pm.getWineConsumed();
+        return 0;
+    }
+
+    public long getDodgySinceLastEtc() {
+        if (activeModule instanceof PickpocketingModule pm) return pm.getDodgySinceLastEtc();
+        return 0;
+    }
+
+    public long getWineSinceLastEtc() {
+        if (activeModule instanceof PickpocketingModule pm) return pm.getWineSinceLastEtc();
+        return 0;
+    }
+
+    // Stubs for remaining missing methods in Overlay
+    public double getEstimatedEtcsToGoal() { return 0.0; } // TODO
+    public double getExpectedEtcs() { return 0.0; } // TODO
+    public double getProbEtcFromSuccesses() { return 0.0; } // TODO
+    public List<Map.Entry<String, Long>> getTopBalances(int limit) { return List.of(); } // TODO from betManager
+    public List<String> getRecentBalanceRequests() { return List.of(); } // TODO
+    public long getBalance(String user) { return betManager.getBalance(user); }
+
+    public void setActiveTask(String task, int goalPercentage) {
+        this.currentGoalPercentage = goalPercentage;
+        // TODO activate module if needed
+        if (chatBetPanel != null) chatBetPanel.refresh();
+    }
 
     public double getSuccessRate() { return successes.get() > 0 ? (successes.get() * 100.0 / attempts.get()) : 0.0; }
     public int getCurrentGoalPercentage() { return currentGoalPercentage; }
 
     public List<Poll> getActivePolls() { return betManager.getActivePolls(); }
-    // ... other shared getters
 
-    public void setActiveModule(BetModule module) { this.activeModule = module; }
     public String getActiveTaskName() {
         return activeModule != null ? activeModule.getName() : "None";
     }
+
+    public void setActiveModule(BetModule module) { this.activeModule = module; }
 }
