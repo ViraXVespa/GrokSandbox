@@ -1,6 +1,7 @@
 param(
     [switch]$Verbose,
-    [switch]$Build
+    [switch]$Build,
+    [switch]$NoGit
 )
 
 # === Launch Dev Client ===
@@ -11,10 +12,9 @@ $Failed      = $false
 
 if ($Build) {
     Set-Location $ProjectDir
-    Write-Host "Pulling latest files..."
-    $gitoutput = git pull origin main
-    if ($Verbose) {
-        Write-Host $gitoutput
+    if (!$NoGit) {
+        Write-Host "Pulling latest files..."
+        git pull origin main
     }
     Write-Host "Building ShadowJar..."
     $BuildOutput = ""
