@@ -11,6 +11,8 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -37,6 +39,10 @@ public class ChatBetPlugin extends Plugin {
     @Inject private ChatBetConfig config;
     @Inject private OverlayManager overlayManager;
     @Inject private ChatBetOverlay overlay;
+    @Inject private ChatBetPanel chatBetPanel;
+    @Inject private ClientToolbar clientToolbar;
+
+    private NavigationButton navButton;
 
     private final BetManager betManager = new BetManager();
     private com.vxv.chatbet.module.BetModule activeModule;
@@ -72,10 +78,23 @@ public class ChatBetPlugin extends Plugin {
     }
 
     @Override
-    protected void startUp() throws Exception { overlayManager.add(overlay); }
+    protected void startUp() throws Exception {
+        overlayManager.add(overlay);
+
+        navButton = NavigationButton.builder()
+            .tooltip("ChatBet")
+            .priority(5)
+            .panel(chatBetPanel)
+            .build();
+
+        clientToolbar.addNavigation(navButton);
+    }
 
     @Override
-    protected void shutDown() throws Exception { overlayManager.remove(overlay); }
+    protected void shutDown() throws Exception {
+        overlayManager.remove(overlay);
+        clientToolbar.removeNavigation(navButton);
+    }
 
     @Subscribe
     public void onChatMessage(ChatMessage event) {
