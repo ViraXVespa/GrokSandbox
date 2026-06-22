@@ -19,6 +19,11 @@ public class ChatBetPanel extends PluginPanel {
     private String currentTask = "Pickpocketing Elves";
     private int currentGoalPercentage = 30;
 
+    @Inject
+    public ChatBetPanel() {
+        // Guice needs this
+    }
+
     public ChatBetPanel(ChatBetPlugin plugin) {
         this.plugin = plugin;
         setLayout(new BorderLayout());
