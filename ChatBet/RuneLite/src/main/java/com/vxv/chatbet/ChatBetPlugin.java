@@ -159,18 +159,17 @@ public class ChatBetPlugin extends Plugin {
         }
 
         int startGoalXp = xpTrackerService.getStartGoalXp(Skill.THIEVING);
-        int remainingToEndGoal = xpTrackerService.getEndGoalXp(Skill.THIEVING);
+        int endGoalXp = xpTrackerService.getEndGoalXp(Skill.THIEVING);  // absolute goal end XP (per snapshot fields)
         int currentXp = client != null ? client.getSkillExperience(Skill.THIEVING) : lastThievingXp;
-        int endGoalXp = currentXp + remainingToEndGoal;
 
-        // If no valid goal is set in XP Tracker (e.g. start <= 0, or already at/past end, or remaining <= 0)
-        // fall back to percentage of remaining (treats current as effective start)
-        if (startGoalXp <= 0 || endGoalXp <= startGoalXp || remainingToEndGoal <= 0) {
-            return (int) (remainingToEndGoal * (currentGoalPercentage / 100.0));
+        // If no valid goal set or already reached/past end
+        if (startGoalXp <= 0 || endGoalXp <= startGoalXp || endGoalXp <= currentXp) {
+            int remaining = Math.max(0, endGoalXp - currentXp);
+            return (int) (remaining * (currentGoalPercentage / 100.0));
         }
 
-        // Proper calculation: target XP at the specified percentage progress *through the full goal span*
-        // This accounts for the starting XP of the goal set in the XP Tracker
+        // Target at percentage progress through the full goal span (start to end)
+        // Correctly accounts for goal starting XP
         double progress = currentGoalPercentage / 100.0;
         int targetXp = (int) (startGoalXp + (endGoalXp - startGoalXp) * progress);
         return Math.max(0, targetXp - currentXp);
