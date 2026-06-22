@@ -157,10 +157,8 @@ public class ChatBetPlugin extends Plugin {
             }
         }
 
-        // Refined pickpocket success / failure based on actual messages
-        if (lower.contains("pick the elf's pocket") || 
-            lower.contains("pick the pocket of the elf") || 
-            lower.contains("pickpocket the elf")) {
+        // Precise detection based on actual in-game messages
+        if (lower.contains("you pick the elf's pocket")) {
             successes.incrementAndGet();
             attempts.incrementAndGet();
             successesSinceLastEtc.incrementAndGet();
@@ -170,7 +168,7 @@ public class ChatBetPlugin extends Plugin {
                 ((PickpocketingModule) activeModule).recordPickpocket(true);
             }
         } 
-        else if (lower.contains("fail to pick the elf's")) {
+        else if (lower.contains("you fail to pick the elf's pocket")) {
             attempts.incrementAndGet();
             attemptsSinceLastEtc.incrementAndGet();
 
