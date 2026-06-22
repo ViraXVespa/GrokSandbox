@@ -153,39 +153,53 @@ public class ChatBetPlugin extends Plugin {
         return 0;
     }
 
-    // Full delegation for PickpocketingModule getters to fix Overlay
+    // Full delegation for PickpocketingModule getters to fix Overlay (Java 11 compatible)
     public int getEtcsObtained() {
-        if (activeModule instanceof PickpocketingModule pm) return pm.getEtcsObtained();
+        if (activeModule instanceof PickpocketingModule) {
+            return ((PickpocketingModule) activeModule).getEtcsObtained();
+        }
         return 0;
     }
 
     public int getAttemptsSinceLastEtc() {
-        if (activeModule instanceof PickpocketingModule pm) return pm.getAttemptsSinceLastEtc();
+        if (activeModule instanceof PickpocketingModule) {
+            return ((PickpocketingModule) activeModule).getAttemptsSinceLastEtc();
+        }
         return 0;
     }
 
     public int getSuccessesSinceLastEtc() {
-        if (activeModule instanceof PickpocketingModule pm) return pm.getSuccessesSinceLastEtc();
+        if (activeModule instanceof PickpocketingModule) {
+            return ((PickpocketingModule) activeModule).getSuccessesSinceLastEtc();
+        }
         return 0;
     }
 
     public long getDodgyConsumed() {
-        if (activeModule instanceof PickpocketingModule pm) return pm.getDodgyConsumed();
+        if (activeModule instanceof PickpocketingModule) {
+            return ((PickpocketingModule) activeModule).getDodgyConsumed();
+        }
         return 0;
     }
 
     public long getWineConsumed() {
-        if (activeModule instanceof PickpocketingModule pm) return pm.getWineConsumed();
+        if (activeModule instanceof PickpocketingModule) {
+            return ((PickpocketingModule) activeModule).getWineConsumed();
+        }
         return 0;
     }
 
     public long getDodgySinceLastEtc() {
-        if (activeModule instanceof PickpocketingModule pm) return pm.getDodgySinceLastEtc();
+        if (activeModule instanceof PickpocketingModule) {
+            return ((PickpocketingModule) activeModule).getDodgySinceLastEtc();
+        }
         return 0;
     }
 
     public long getWineSinceLastEtc() {
-        if (activeModule instanceof PickpocketingModule pm) return pm.getWineSinceLastEtc();
+        if (activeModule instanceof PickpocketingModule) {
+            return ((PickpocketingModule) activeModule).getWineSinceLastEtc();
+        }
         return 0;
     }
 
