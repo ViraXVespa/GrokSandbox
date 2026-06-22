@@ -1,6 +1,8 @@
 package com.vxv.chatbet.module;
 
 import com.vxv.chatbet.bet.DropOutcome;
+import net.runelite.api.InventoryID;
+import net.runelite.api.ItemContainer;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.client.ui.overlay.components.PanelComponent;
@@ -14,6 +16,10 @@ public class PickpocketingModule implements BetModule {
     private final AtomicLong dodgyConsumed = new AtomicLong();
     private final AtomicLong wineConsumed = new AtomicLong();
     private final AtomicLong successesSinceLastEtc = new AtomicLong();
+    private final AtomicLong attempts = new AtomicLong();
+    private final AtomicLong successes = new AtomicLong();
+
+    private int lastDodgyCount = -1;
 
     @Override
     public String getName() {
@@ -32,21 +38,44 @@ public class PickpocketingModule implements BetModule {
         return successesSinceLastEtc;
     }
 
+    public void recordPickpocket(boolean success) {
+        attempts.incrementAndGet();
+        if (success) {
+            successes.incrementAndGet();
+            successesSinceLastEtc.incrementAndGet();
+        }
+    }
+
     @Override
     public void onItemContainerChanged(ItemContainerChanged event) {
-        // TODO: Compare previous vs current count of dodgy necklace (ID 21143)
-        // and increment dodgyConsumed when it decreases.
+        if (event.getContainerId() != InventoryID.INVENTORY.getId()) {
+            return;
+        }
+
+        ItemContainer container = event.getItemContainer();
+        if (container == null) return;
+
+        // Dodgy necklace item ID = 21143
+        int currentDodgy = container.count(21143);
+
+        if (lastDodgyCount != -1 && currentDodgy < lastDodgyCount) {
+            int lost = lastDodgyCount - currentDodgy;
+            dodgyConsumed.addAndGet(lost);
+        }
+
+        lastDodgyCount = currentDodgy;
     }
 
     @Override
     public List<DropOutcome> getSuggestedOutcomes() {
         return Collections.emptyList();
-        // Example for later:
-        // return List.of(new DropOutcome("ETC", 1.0 / 1024));
     }
 
     @Override
     public void contributeToOverlay(PanelComponent panel) {
-        // Module-specific overlay rows can go here
+        // Module-specific UI can be added here later
     }
+
+    public long getAttempts() { return attempts.get(); }
+    public long getSuccesses() { return successes.get(); }
 }

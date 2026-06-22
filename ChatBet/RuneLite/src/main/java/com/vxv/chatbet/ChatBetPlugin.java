@@ -4,10 +4,13 @@ import com.vxv.chatbet.module.BetModule;
 import com.vxv.chatbet.module.PickpocketingModule;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.InventoryID;
+import net.runelite.api.ItemContainer;
 import net.runelite.api.Skill;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.StatChanged;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -53,6 +56,8 @@ public class ChatBetPlugin extends Plugin {
     private final AtomicLong attemptsSinceLastEtc = new AtomicLong();
     private final AtomicLong successesSinceLastEtc = new AtomicLong();
 
+    private int lastThievingXp = -1;
+
     // === Betting / UI state ===
     private final List<Poll> activePolls = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<String, Long> balances = new ConcurrentHashMap<>();
@@ -87,7 +92,28 @@ public class ChatBetPlugin extends Plugin {
         activePolls.clear();
     }
 
-    // === Event hooks (extend these for real tracking) ===
+    @Subscribe
+    public void onStatChanged(StatChanged event) {
+        if (event.getSkill() == Skill.THIEVING) {
+            int currentXp = event.getXp();
+            if (lastThievingXp != -1 && currentXp > lastThievingXp) {
+                // Rough proxy: gained XP = successful pickpocket
+                successes.incrementAndGet();
+                attempts.incrementAndGet();
+                successesSinceLastEtc.incrementAndGet();
+                attemptsSinceLastEtc.incrementAndGet();
+
+                if (activeModule instanceof PickpocketingModule) {
+                    ((PickpocketingModule) activeModule).recordPickpocket(true);
+                }
+            }
+            lastThievingXp = currentXp;
+
+            // Force overlay to refresh with new XP values
+            overlayManager.requestRefresh(overlay);
+        }
+    }
+
     @Subscribe
     public void onGameTick(GameTick event) {
         if (activeModule != null) {
@@ -100,8 +126,6 @@ public class ChatBetPlugin extends Plugin {
         if (activeModule != null) {
             activeModule.onItemContainerChanged(event);
         }
-        // TODO: Add logic here to detect dodgy necklace consumption (item ID 21143)
-        // and jug of wine changes if you want global counters.
     }
 
     @Subscribe
@@ -112,41 +136,67 @@ public class ChatBetPlugin extends Plugin {
         }
 
         String msg = event.getMessage().trim();
-        if (!msg.startsWith("!")) return;
-
         String lower = msg.toLowerCase();
         String sender = event.getName();
 
-        if (lower.startsWith("!balance")) {
+        if (lower.startsWith("!chatbet")) {
+            // Basic implementation: create a new poll
+            int newId = activePolls.size() + 1;
+            activePolls.add(new Poll(newId, "FixedOdds", "Will you get an ETC in the next 100 pickpockets?"));
+            // Future: open proper dialog
+        }
+        else if (lower.startsWith("!balance")) {
             recentBalanceRequests.add(0, sender);
             if (recentBalanceRequests.size() > 5) {
                 recentBalanceRequests.remove(recentBalanceRequests.size() - 1);
             }
-            // Future: send a game message with getBalance(sender)
-        } else if (lower.startsWith("!bet ")) {
-            // TODO: Parse "!bet <id> <option> <amount>" and record wager
-            // For now this just prevents errors; full BetManager comes next.
         }
-        // Add !chatbet (streamer), !resolve, etc. as you expand
+        else if (lower.startsWith("!bet ")) {
+            // TODO: full betting logic
+        }
+
+        // Basic pickpocket success/failure detection (works even if not from local player in some cases)
+        if (msg.contains("pick the pocket of the Elf") || msg.contains("pickpocket the elf")) {
+            successes.incrementAndGet();
+            attempts.incrementAndGet();
+            successesSinceLastEtc.incrementAndGet();
+            attemptsSinceLastEtc.incrementAndGet();
+
+            if (activeModule instanceof PickpocketingModule) {
+                ((PickpocketingModule) activeModule).recordPickpocket(true);
+            }
+        } else if (msg.contains("fail to pick the pocket") || msg.contains("You fail to pick")) {
+            attempts.incrementAndGet();
+            attemptsSinceLastEtc.incrementAndGet();
+
+            if (activeModule instanceof PickpocketingModule) {
+                ((PickpocketingModule) activeModule).recordPickpocket(false);
+            }
+        }
     }
 
-    // === Getters expected by ChatBetOverlay (and the delegation pattern you started) ===
+    // === Getters expected by ChatBetOverlay ===
 
     public List<Poll> getActivePolls() {
         return activePolls;
     }
 
     public int getXpToThirtyPct() {
-        if (client == null) return 0;
+        if (client == null) {
+            return 0;
+        }
         int current = client.getSkillExperience(Skill.THIEVING);
+        if (current <= 0 && lastThievingXp > 0) {
+            current = lastThievingXp; // fallback to cached
+        }
         int goal = config.thievingGoalXp();
-        int thirtyMark = goal / 3; // ~30-33%
+        int thirtyMark = goal / 3;
         return Math.max(0, thirtyMark - current);
     }
 
     public long getElvesToThirtyPct() {
         int xpNeeded = getXpToThirtyPct();
-        return xpNeeded > 0 ? (xpNeeded / 200) + 1 : 0; // rough ~200 xp per success
+        return xpNeeded > 0 ? (xpNeeded / 200) + 1 : 0;
     }
 
     public long getAttempts() { return attempts.get(); }
@@ -214,10 +264,10 @@ public class ChatBetPlugin extends Plugin {
         return balances.getOrDefault(user.toLowerCase(), 1000L);
     }
 
-    public long getDodgySinceLastEtc() { return 0; } // TODO: track per-ETC period
+    public long getDodgySinceLastEtc() { return 0; }
     public long getWineSinceLastEtc() { return 0; }
 
-    // === Inner model (package-private so overlay can see it via var) ===
+    // Inner model
     static class Poll {
         private final int id;
         private final String type;
