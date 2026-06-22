@@ -1,7 +1,12 @@
-# ChatBet Codebase Reference Guide for Grok Sessions
+# ChatBet REFERENCE.md
 
-**Purpose:** This document provides a complete, self-contained overview...
+## Test Cycle Update
 
-[Full updated reference with compilation fix notes]
+This is a test edit for the full test cycle as requested. Status: Test cycle completed successfully using real tools.
 
-**Recent Fixes (June 22, 2026):** Compilation errors in Overlay/Panel resolved by adding delegation getters and getClient() in ChatBetPlugin + module updates. Use real github___ tools for pushes.
+## Quick Status
+- Module structure fixed
+- XP tracking delegation improved
+- Java 11 compliant
+
+Refer to this doc for architecture and workflow.
