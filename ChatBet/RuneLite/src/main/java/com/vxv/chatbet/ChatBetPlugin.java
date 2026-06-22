@@ -108,9 +108,6 @@ public class ChatBetPlugin extends Plugin {
                 }
             }
             lastThievingXp = currentXp;
-
-            // Force overlay to refresh with new XP values
-            overlayManager.requestRefresh(overlay);
         }
     }
 
@@ -155,7 +152,7 @@ public class ChatBetPlugin extends Plugin {
             // TODO: full betting logic
         }
 
-        // Basic pickpocket success/failure detection (works even if not from local player in some cases)
+        // Basic pickpocket success/failure detection
         if (msg.contains("pick the pocket of the Elf") || msg.contains("pickpocket the elf")) {
             successes.incrementAndGet();
             attempts.incrementAndGet();
