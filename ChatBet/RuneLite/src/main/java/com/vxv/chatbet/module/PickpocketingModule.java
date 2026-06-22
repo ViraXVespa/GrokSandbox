@@ -54,7 +54,8 @@ public class PickpocketingModule implements BetModule {
     public void onStatChanged(StatChanged event) {
         if (event.getSkill() == Skill.THIEVING) {
             log.debug("Thieving XP changed - potential success");
-            // TODO: Increment successes/attempts based on full logic
+            successesSinceLastEtc.incrementAndGet();
+            // TODO: Full logic for attempt vs success distinction (e.g., via animation or item drops)
         }
     }
 

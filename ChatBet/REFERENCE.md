@@ -8,5 +8,6 @@ This is a test edit for the full test cycle as requested. Status: Test cycle com
 - Module structure fixed
 - XP tracking delegation improved
 - Java 11 compliant
+- XP goal calculation and attempt/success sync implemented in Plugin + Module
 
 Refer to this doc for architecture and workflow.
