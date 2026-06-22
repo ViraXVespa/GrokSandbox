@@ -101,7 +101,7 @@ public class ChatBetPlugin extends Plugin {
         if (firstThievingXpEvent) {
             lastThievingXp = currentXp;
             firstThievingXpEvent = false;
-            return; // don't increment on the very first event after login
+            return;
         }
 
         if (lastThievingXp != -1 && currentXp > lastThievingXp) {
@@ -157,7 +157,7 @@ public class ChatBetPlugin extends Plugin {
             }
         }
 
-        // Pickpocket success / failure (now listens to GAMEMESSAGE + SPAM too)
+        // Pickpocket success / failure detection
         if (lower.contains("pick the pocket of the elf") || lower.contains("pickpocket the elf")) {
             successes.incrementAndGet();
             attempts.incrementAndGet();
@@ -168,9 +168,7 @@ public class ChatBetPlugin extends Plugin {
                 ((PickpocketingModule) activeModule).recordPickpocket(true);
             }
         } 
-        else if (lower.contains("fail to pick the pocket") ||
-                 lower.contains("you fail to pick") ||
-                 lower.contains("stunned")) {
+        else if (lower.contains("fail to pick the pocket")) {
             attempts.incrementAndGet();
             attemptsSinceLastEtc.incrementAndGet();
 
@@ -195,7 +193,6 @@ public class ChatBetPlugin extends Plugin {
             }
         }
 
-        // Fallback to cached value
         if (lastThievingXp > 0) {
             return Math.max(0, thirtyMark - lastThievingXp);
         }
@@ -227,7 +224,6 @@ public class ChatBetPlugin extends Plugin {
     }
 
     public long getAttemptsSinceLastEtc() { return attemptsSinceLastEtc.get(); }
-
     public long getSuccessesSinceLastEtc() {
         if (activeModule instanceof PickpocketingModule) {
             return ((PickpocketingModule) activeModule).getSuccessesSinceLastEtc().get();
