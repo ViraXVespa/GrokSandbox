@@ -76,12 +76,9 @@ public class ChatBetPlugin extends Plugin {
         pickpocketingModule = new PickpocketingModule();
         activeModule = pickpocketingModule;
 
-        // Try to seed the cache immediately
         if (client != null) {
             int xp = client.getSkillExperience(Skill.THIEVING);
-            if (xp > 0) {
-                lastThievingXp = xp;
-            }
+            if (xp > 0) lastThievingXp = xp;
         }
         firstThievingXpEvent = true;
 
@@ -101,14 +98,12 @@ public class ChatBetPlugin extends Plugin {
         if (event.getSkill() != Skill.THIEVING) return;
 
         int currentXp = event.getXp();
+        lastThievingXp = currentXp;
 
         if (firstThievingXpEvent) {
-            lastThievingXp = currentXp;
             firstThievingXpEvent = false;
             return;
         }
-
-        lastThievingXp = currentXp;
     }
 
     @Subscribe
@@ -117,7 +112,7 @@ public class ChatBetPlugin extends Plugin {
             activeModule.onGameTick(event);
         }
 
-        // Keep cache fresh if it was never properly initialized
+        // Aggressively try to seed a real XP value if we still don't have one
         if (lastThievingXp <= 0 && client != null) {
             int xp = client.getSkillExperience(Skill.THIEVING);
             if (xp > 0) {
@@ -186,18 +181,24 @@ public class ChatBetPlugin extends Plugin {
         int goal = config.thievingGoalXp();
         int thirtyMark = goal / 3;
 
-        // Always prefer live value from client
+        // Strongly prefer live value
         if (client != null) {
             int current = client.getSkillExperience(Skill.THIEVING);
             if (current > 0) {
-                lastThievingXp = current; // keep cache fresh
+                lastThievingXp = current;
                 return Math.max(0, thirtyMark - current);
             }
         }
 
-        // Fallback to cached value
+        // Fallback to cache
         if (lastThievingXp > 0) {
             return Math.max(0, thirtyMark - lastThievingXp);
+        }
+
+        // Last resort: if we have a goal but no XP data yet, still show something based on goal
+        // (this prevents permanent 0 while waiting for first skill data)
+        if (goal > 0) {
+            return Math.max(0, thirtyMark); // show full remaining until we get real data
         }
 
         return 0;
