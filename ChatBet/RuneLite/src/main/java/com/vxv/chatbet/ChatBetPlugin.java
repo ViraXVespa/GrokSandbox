@@ -25,6 +25,11 @@ import com.vxv.chatbet.bet.Poll;
 import com.vxv.chatbet.ui.BetCreationDialog;
 import com.vxv.chatbet.event.GameEventType;
 
+@PluginDescriptor(
+    name = "ChatBet",
+    description = "Modular betting and odds system for OSRS streaming.",
+    tags = {"betting", "thieving", "probability", "stream"}
+)
 @Slf4j
 public class ChatBetPlugin extends Plugin {
 
