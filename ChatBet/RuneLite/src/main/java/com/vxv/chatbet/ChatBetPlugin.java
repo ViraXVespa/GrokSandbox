@@ -147,13 +147,16 @@ public class ChatBetPlugin extends Plugin {
     }
 
     public int getXpToGoal() {
-        if (xpTrackerService == null) return 0;
-        int startGoalXp = xpTrackerService.getStartGoalXp(Skill.THIEVING);
+        if (xpTrackerService == null || client == null) return 0;
         int currentXp = client.getSkillExperience(Skill.THIEVING);
         int goalPercentage = currentGoalPercentage;
-        // Simple goal: e.g. 30% toward next level or fixed goal
-        int xpToNextLevel = xpTrackerService.getEndGoalXp(Skill.THIEVING);
-        return (int) (xpToNextLevel * (goalPercentage / 100.0));
+        // Calculate XP needed to reach goal percentage of next level
+        int xpToNextLevel = xpTrackerService.getEndGoalXp(Skill.THIEVING) - currentXp;
+        if (xpToNextLevel <= 0) return 0;
+        // Goal is a percentage of the way to next level
+        int goalXp = (int) (xpTrackerService.getEndGoalXp(Skill.THIEVING) * (goalPercentage / 100.0));
+        int xpNeededForGoal = goalXp - currentXp;
+        return Math.max(0, xpNeededForGoal);
     }
 
     public long getElvesToGoal() {

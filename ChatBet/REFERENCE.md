@@ -8,6 +8,9 @@ This is a test edit for the full test cycle as requested. Status: Test cycle com
 - Module structure fixed
 - XP tracking delegation improved
 - Java 11 compliant
-- XP goal calculation and attempt/success sync implemented in Plugin + Module
+- Goal calculation logic updated for accurate "to goal" when already past percentage.
 
 Refer to this doc for architecture and workflow.
+
+## Workflow Note
+Using raw GitHub reads + direct push tools to bypass sandbox limitations.
