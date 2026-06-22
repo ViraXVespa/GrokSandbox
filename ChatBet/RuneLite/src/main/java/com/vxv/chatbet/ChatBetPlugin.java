@@ -4,8 +4,10 @@ import com.vxv.chatbet.module.BetModule;
 import com.vxv.chatbet.module.PickpocketingModule;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.Skill;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.StatChanged;
@@ -69,6 +71,8 @@ public class ChatBetPlugin extends Plugin {
     private final AtomicLong successesSinceLastEtc = new AtomicLong();
 
     private int lastThievingXp = -1;
+    private int xpSeedRetries = 0;
+    private static final int MAX_XP_SEED_RETRIES = 30; // ~15-30 seconds
 
     private final List<Poll> activePolls = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<String, Long> balances = new ConcurrentHashMap<>();
@@ -105,12 +109,6 @@ public class ChatBetPlugin extends Plugin {
 
         clientToolbar.addNavigation(navButton);
 
-        // Simple initial seed
-        if (client != null) {
-            int xp = client.getSkillExperience(Skill.THIEVING);
-            if (xp > 0) lastThievingXp = xp;
-        }
-
         activePolls.add(new Poll(1, "FixedOdds", "Will you get an ETC before 50 successes?"));
         balances.putIfAbsent("ViraXVespa", 99999L);
         balances.putIfAbsent("testviewer", 2500L);
@@ -123,60 +121,11 @@ public class ChatBetPlugin extends Plugin {
         activePolls.clear();
     }
 
-    public void setActiveTask(String taskName, int goalPercentage) {
-        this.activeTaskName = taskName;
-        this.currentGoalPercentage = Math.max(5, Math.min(100, goalPercentage));
-
-        if (configManager != null) {
-            configManager.setConfiguration("chatbet", "activeTaskName", activeTaskName);
-            configManager.setConfiguration("chatbet", "currentGoalPercentage", currentGoalPercentage);
+    @Subscribe
+    public void onGameStateChanged(GameStateChanged event) {
+        if (event.getGameState() == GameState.LOGGED_IN) {
+            xpSeedRetries = 0; // start fresh retry window
         }
-
-        // Force fresh XP read when goal changes
-        if (client != null) {
-            int xp = client.getSkillExperience(Skill.THIEVING);
-            if (xp > 0) lastThievingXp = xp;
-        }
-
-        if (panel != null) panel.refresh();
-
-        if (overlay != null) {
-            overlay.setPosition(overlay.getPosition());
-        }
-    }
-
-    public String getActiveTaskName() {
-        return activeTaskName;
-    }
-
-    public int getCurrentGoalPercentage() {
-        return currentGoalPercentage;
-    }
-
-    public int getXpToGoal() {
-        int goal = config.thievingGoalXp();
-        int targetMark = (int) (goal * (currentGoalPercentage / 100.0));
-
-        // Prefer live value
-        if (client != null) {
-            int current = client.getSkillExperience(Skill.THIEVING);
-            if (current > 0) {
-                lastThievingXp = current;
-                return Math.max(0, targetMark - current);
-            }
-        }
-
-        // Fallback to last known good value from StatChanged
-        if (lastThievingXp > 0) {
-            return Math.max(0, targetMark - lastThievingXp);
-        }
-
-        return Math.max(0, targetMark);
-    }
-
-    public long getElvesToGoal() {
-        int xpNeeded = getXpToGoal();
-        return xpNeeded > 0 ? (xpNeeded / 200) + 1 : 0;
     }
 
     @Subscribe
@@ -192,10 +141,15 @@ public class ChatBetPlugin extends Plugin {
             activeModule.onGameTick(event);
         }
 
-        // Keep trying to get a real value
-        if (lastThievingXp <= 0 && client != null) {
+        // Post-login XP seeding with retry
+        if (lastThievingXp <= 0 && xpSeedRetries < MAX_XP_SEED_RETRIES && client != null) {
             int xp = client.getSkillExperience(Skill.THIEVING);
-            if (xp > 0) lastThievingXp = xp;
+            if (xp > 0) {
+                lastThievingXp = xp;
+                xpSeedRetries = MAX_XP_SEED_RETRIES; // done
+            } else {
+                xpSeedRetries++;
+            }
         }
     }
 
