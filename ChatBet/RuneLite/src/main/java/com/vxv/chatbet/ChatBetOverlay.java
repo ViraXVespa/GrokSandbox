@@ -75,95 +75,13 @@ public class ChatBetOverlay extends Overlay
             panelComponent.getChildren().add(LineComponent.builder().left("").build()); // spacer
         }
 
-        // XP Goal Section (now dynamic)
-        int goalPct = plugin.getCurrentGoalPercentage();
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("XP to " + goalPct + "% Goal")
-            .right(plugin.getXpToGoal() + " XP")
-            .build());
+        // Task-specific stats now come from the active BetModule (Pickpocketing, Ourania, etc.)
+        // This removes the hardcoded elf pickpocketing UI when another module is enabled.
+        if (plugin.getActiveModule() != null) {
+            plugin.getActiveModule().contributeToOverlay(panelComponent);
+        }
 
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Elves to Goal")
-            .right(String.valueOf(plugin.getElvesToGoal()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder().left("").build()); // spacer
-
-        // Session Stats
-        panelComponent.getChildren().add(TitleComponent.builder()
-            .text("Session Since Login")
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Attempts")
-            .right(String.valueOf(plugin.getAttempts()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Successes")
-            .right(String.valueOf(plugin.getSuccesses()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Success Rate")
-            .right(String.format("%.1f%%", plugin.getSuccessRate()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("ETCs Obtained")
-            .right(String.valueOf(plugin.getEtcsObtained()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Est. ETCs to Goal")
-            .right(String.format("%.2f", plugin.getEstimatedEtcsToGoal()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Actual vs Expected ETCs")
-            .right(plugin.getEtcsObtained() + " / " + String.format("%.2f", plugin.getExpectedEtcs()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder().left("").build());
-
-        // Since Last ETC
-        panelComponent.getChildren().add(TitleComponent.builder()
-            .text("Since Last ETC")
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Attempts since last")
-            .right(String.valueOf(plugin.getAttemptsSinceLastEtc()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Successes since last")
-            .right(String.valueOf(plugin.getSuccessesSinceLastEtc()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Probability")
-            .right(String.format("%.2f%%", plugin.getProbEtcFromSuccesses()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder().left("").build());
-
-        // Consumables
-        panelComponent.getChildren().add(TitleComponent.builder()
-            .text("Consumables")
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Dodgy Necklaces (total)")
-            .right(String.valueOf(plugin.getDodgyConsumed()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Jugs of Wine (total)")
-            .right(String.valueOf(plugin.getWineConsumed()))
-            .build());
-
-        // Token Balances
+        // Token Balances (general section - useful for all modules)
         panelComponent.getChildren().add(LineComponent.builder().left("").build());
 
         panelComponent.getChildren().add(TitleComponent.builder()
@@ -195,16 +113,6 @@ public class ChatBetOverlay extends Overlay
                     .build());
             }
         }
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Dodgy since last ETC")
-            .right(String.valueOf(plugin.getDodgySinceLastEtc()))
-            .build());
-
-        panelComponent.getChildren().add(LineComponent.builder()
-            .left("Wine since last ETC")
-            .right(String.valueOf(plugin.getWineSinceLastEtc()))
-            .build());
 
         return panelComponent.render(graphics);
     }
