@@ -92,7 +92,6 @@ public class ChatBetPlugin extends Plugin {
 
     @Subscribe
     public void onChatMessage(ChatMessage event) {
-        // command stubs...
         ChatMessageType type = event.getType();
         if (type != ChatMessageType.GAMEMESSAGE && type != ChatMessageType.SPAM && type != ChatMessageType.PUBLICCHAT) return;
 
@@ -104,6 +103,13 @@ public class ChatBetPlugin extends Plugin {
         if (msg.equalsIgnoreCase("!bets")) { handleBetsCommand(); return; }
         if (msg.equalsIgnoreCase("!chatbet")) { handleChatBetCommand(sender); return; }
         if (msg.toLowerCase().startsWith("!resolve ")) { handleResolveCommand(sender, msg); return; }
+
+        // Delegate chat tracking to active module
+        if (activeModule != null) {
+            if (activeModule instanceof PickpocketingModule) {
+                ((PickpocketingModule) activeModule).onChatMessage(event);
+            }
+        }
     }
 
     private void handleBetCommand(String username, String message) { /* TODO */ }
@@ -150,7 +156,6 @@ public class ChatBetPlugin extends Plugin {
         if (xpTrackerService == null || client == null) return 0;
         int currentXp = client.getSkillExperience(Skill.THIEVING);
         int goalPercentage = currentGoalPercentage;
-        // Proper calculation: XP needed to reach goal % of the way through current level
         int startXp = xpTrackerService.getStartGoalXp(Skill.THIEVING);
         int endXp = xpTrackerService.getEndGoalXp(Skill.THIEVING);
         int levelXpRange = endXp - startXp;
@@ -224,7 +229,6 @@ public class ChatBetPlugin extends Plugin {
 
     public void setActiveTask(String task, int goalPercentage) {
         this.currentGoalPercentage = goalPercentage;
-        // TODO activate module if needed
         if (chatBetPanel != null) chatBetPanel.refresh();
     }
 
@@ -238,4 +242,7 @@ public class ChatBetPlugin extends Plugin {
     }
 
     public void setActiveModule(BetModule module) { this.activeModule = module; }
+
+    public AtomicInteger getAttempts() { return attempts; }
+    public AtomicInteger getSuccesses() { return successes; }
 }

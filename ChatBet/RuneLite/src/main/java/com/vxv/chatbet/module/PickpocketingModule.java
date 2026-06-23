@@ -8,6 +8,7 @@ import net.runelite.api.Skill;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.StatChanged;
+import net.runelite.api.events.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -55,7 +56,7 @@ public class PickpocketingModule implements BetModule {
         if (event.getSkill() == Skill.THIEVING) {
             log.debug("Thieving XP changed - potential success");
             successesSinceLastEtc.incrementAndGet();
-            // TODO: Full logic for attempt vs success distinction (e.g., via animation or item drops)
+            // TODO: Full logic for attempt vs success distinction
         }
     }
 
@@ -68,46 +69,8 @@ public class PickpocketingModule implements BetModule {
     }
 
     private void updateItemTracking(ItemContainerChanged event) {
-        ItemContainer container = event.getItemContainer();
-        if (container == null) return;
-
-        // Track deltas for ETC, dodgy, wine
-        int etcDelta = checkDelta(container, ITEM_ETC);
-        if (etcDelta > 0) {
-            etcsObtained.addAndGet(etcDelta);
-            attemptsSinceLastEtc.set(0);
-            successesSinceLastEtc.set(0);
-            dodgySinceLastEtc.set(0);
-            wineSinceLastEtc.set(0);
-            log.info("ETC obtained! Resetting since-last counters");
-        }
-
-        int dodgyDelta = checkDelta(container, ITEM_DODGY_NECKLACE);
-        if (dodgyDelta < 0) {
-            dodgyConsumed.addAndGet(-dodgyDelta);
-            dodgySinceLastEtc.addAndGet(-dodgyDelta);
-        }
-
-        int wineDelta = checkDelta(container, ITEM_JUG_OF_WINE);
-        if (wineDelta < 0) {
-            wineConsumed.addAndGet(-wineDelta);
-            wineSinceLastEtc.addAndGet(-wineDelta);
-        }
-
-        // Update last quantities
-        updateLastQtys(container);
-    }
-
-    private int checkDelta(ItemContainer container, int itemId) {
-        int currentQty = container.count(itemId);
-        int lastQty = lastInventoryQtys.getOrDefault(itemId, 0);
-        return currentQty - lastQty;
-    }
-
-    private void updateLastQtys(ItemContainer container) {
-        lastInventoryQtys.put(ITEM_ETC, container.count(ITEM_ETC));
-        lastInventoryQtys.put(ITEM_DODGY_NECKLACE, container.count(ITEM_DODGY_NECKLACE));
-        lastInventoryQtys.put(ITEM_JUG_OF_WINE, container.count(ITEM_JUG_OF_WINE));
+        log.debug("Item container changed - tracking update triggered in PickpocketingModule");
+        // TODO: Full delta logic
     }
 
     public int getEtcsObtained() { return etcsObtained.get(); }
@@ -123,6 +86,36 @@ public class PickpocketingModule implements BetModule {
         int xpNeeded = plugin.getXpToGoal();
         double xpPerElf = 353.3;
         return xpNeeded > 0 ? (long) Math.ceil(xpNeeded / xpPerElf) : 0L;
+    }
+
+    // Chat message tracking for attempts, successes, consumables
+    public void onChatMessage(ChatMessage event) {
+        String msg = event.getMessage().toLowerCase();
+        if (msg.contains("you pickpocket") || msg.contains("you steal")) {
+            attemptsSinceLastEtc.incrementAndGet();
+            plugin.getAttempts().incrementAndGet();
+            log.info("Pickpocket attempt detected via chat");
+        }
+        if (msg.contains("you steal an") || msg.contains("etc")) {
+            successesSinceLastEtc.incrementAndGet();
+            plugin.getSuccesses().incrementAndGet();
+            etcsObtained.incrementAndGet();
+            attemptsSinceLastEtc.set(0);
+            successesSinceLastEtc.set(0);
+            dodgySinceLastEtc.set(0);
+            wineSinceLastEtc.set(0);
+            log.info("ETC obtained - resetting since last counters");
+        }
+        if (msg.contains("dodgy necklace") || msg.contains("necklace")) {
+            dodgyConsumed.incrementAndGet();
+            dodgySinceLastEtc.incrementAndGet();
+            log.info("Dodgy necklace consumed");
+        }
+        if (msg.contains("jug of wine") || msg.contains("wine")) {
+            wineConsumed.incrementAndGet();
+            wineSinceLastEtc.incrementAndGet();
+            log.info("Wine consumed");
+        }
     }
 
     // Add getters/setters for plugin delegation
