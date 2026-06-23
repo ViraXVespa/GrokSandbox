@@ -80,7 +80,7 @@ public class OuraniaAltarModule implements BetModule {
         if (waitingForEssenceAfterBank && nearBank) {
             if (lastPlayerPosition != null && !playerLoc.equals(lastPlayerPosition)) {
                 // Player has moved since we saw the bank payment message
-                if (!runActive && hasEssenceInInventory()) {
+                if (!runActive && (hasEssenceInInventory() || totalEssenceCarried.get() > 0)) {
                     startNewRun();
                     waitingForEssenceAfterBank = false;
                     lastPlayerPosition = null;
@@ -330,7 +330,7 @@ public class OuraniaAltarModule implements BetModule {
     public void onChatMessage(ChatMessage event) {
         String msg = event.getMessage();
 
-        // Detect when player opens the Ourania bank
+        // Detect when player opens the Ourania bank (partial match - message can vary)
         if (msg.contains("Eniola takes your payment")) {
             waitingForEssenceAfterBank = true;
             lastPlayerPosition = null;
