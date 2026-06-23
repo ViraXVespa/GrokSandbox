@@ -42,6 +42,7 @@ public class ChatBetPlugin extends Plugin {
     @Inject private ClientToolbar clientToolbar;
     @Inject private ChatBetPanel chatBetPanel;
     @Inject private XpTrackerService xpTrackerService;
+    @Inject private ConfigManager configManager;
 
     private NavigationButton navButton;
     private final BetManager betManager = new BetManager();
