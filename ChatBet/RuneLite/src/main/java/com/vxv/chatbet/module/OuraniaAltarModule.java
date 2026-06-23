@@ -39,7 +39,7 @@ public class OuraniaAltarModule implements BetModule {
     private static final WorldPoint OURANIA_ALTAR = new WorldPoint(2460, 3245, 0);
 
     // Basic tracking for essence and pouches
-    private final Map<Integer, Integer> lastInventoryQtys = new HashMap<()>;
+    private final Map<Integer, Integer> lastInventoryQtys = new HashMap<>();
     private final Map<Integer, Integer> lastPouchQtys = new HashMap<>();
     private final AtomicInteger totalEssenceCarried = new AtomicInteger(0);
 
