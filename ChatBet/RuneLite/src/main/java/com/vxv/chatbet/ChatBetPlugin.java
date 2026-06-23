@@ -279,4 +279,13 @@ public class ChatBetPlugin extends Plugin {
         }
         return List.of();
     }
+
+    public void createOuraniaPoll(List<String> options) {
+        if (options == null || options.isEmpty()) return;
+
+        // TODO: Proper Poll creation and addition to BetManager
+        // Poll poll = new Poll("Which rune will be most crafted this run?", options);
+        // betManager.addActivePoll(poll); // adjust based on actual BetManager API
+        log.info("Ourania poll would be created with options: " + options);
+    }
 }
