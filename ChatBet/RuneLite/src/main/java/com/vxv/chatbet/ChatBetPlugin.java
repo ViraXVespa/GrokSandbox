@@ -53,6 +53,8 @@ public class ChatBetPlugin extends Plugin {
     private int lastThievingXp = -1;
     private int currentGoalPercentage = 30;
 
+    private int lastOuraniaPollId = -1;
+
     @Getter private final AtomicInteger attempts = new AtomicInteger(0);
     @Getter private final AtomicInteger successes = new AtomicInteger(0);
 
@@ -284,7 +286,15 @@ public class ChatBetPlugin extends Plugin {
     public void createOuraniaPoll(List<String> options) {
         if (options == null || options.isEmpty()) return;
 
-        betManager.createPoll("Which rune will be most crafted this run?", BetType.MULTIPLE_CHOICE, options);
+        Poll poll = betManager.createPoll("Which rune will be most crafted this run?", BetType.MULTIPLE_CHOICE, options);
+        lastOuraniaPollId = poll.getId();
         log.info("Ourania poll created with options: " + options);
+    }
+
+    public void resolveOuraniaPoll(int winningOptionIndex) {
+        if (lastOuraniaPollId > 0) {
+            betManager.resolvePoll(lastOuraniaPollId, winningOptionIndex);
+            lastOuraniaPollId = -1;
+        }
     }
 }
