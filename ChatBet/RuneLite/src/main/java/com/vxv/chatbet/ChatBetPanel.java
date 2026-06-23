@@ -50,6 +50,15 @@ public class ChatBetPanel extends PluginPanel {
         elvesButton.addActionListener(e -> showGoalConfig("Pickpocketing Elves"));
         mainPanel.add(elvesButton);
 
+        mainPanel.add(Box.createVerticalStrut(10));
+
+        // Task button - Ourania Altar Runes
+        JButton ouraniaButton = new JButton("Ourania Altar Runes");
+        ouraniaButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        ouraniaButton.setMaximumSize(new Dimension(200, 40));
+        ouraniaButton.addActionListener(e -> showGoalConfig("Ourania Altar Runes"));
+        mainPanel.add(ouraniaButton);
+
         mainPanel.add(Box.createVerticalGlue());
 
         activeTaskLabel = new JLabel("Active: None");
