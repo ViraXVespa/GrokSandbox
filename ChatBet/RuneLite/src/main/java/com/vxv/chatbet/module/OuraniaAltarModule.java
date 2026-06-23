@@ -16,6 +16,16 @@ public class OuraniaAltarModule implements BetModule {
 
     private final ChatBetPlugin plugin;
 
+    // Essence item IDs
+    private static final int PURE_ESSENCE = 7936;
+    private static final int DAEYALT_ESSENCE = 24704;
+
+    // Pouch item IDs
+    private static final int SMALL_POUCH = 5509;
+    private static final int MEDIUM_POUCH = 5510;
+    private static final int LARGE_POUCH = 5511;
+    private static final int GIANT_POUCH = 5512;
+
     // Basic tracking for essence and pouches
     private final Map<Integer, Integer> lastInventoryQtys = new HashMap<>();
     private final Map<Integer, Integer> lastPouchQtys = new HashMap<>();
@@ -53,7 +63,7 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     private void updateInventoryTracking(ItemContainer container) {
-        // TODO: Calculate delta for pure/daryalt essence
+        // TODO: Calculate delta for pure/daeyalt essence
         // Will be used to detect when player fills pouches or crafts
     }
 
@@ -64,6 +74,16 @@ public class OuraniaAltarModule implements BetModule {
     private boolean isPouchContainer(ItemContainer container) {
         // Placeholder - will check for pouch item IDs later
         return false;
+    }
+
+    /**
+     * Helper to calculate the difference in quantity for a specific item ID
+     * between two maps (previous vs current).
+     */
+    private int calculateDelta(Map<Integer, Integer> previous, Map<Integer, Integer> current, int itemId) {
+        int prev = previous.getOrDefault(itemId, 0);
+        int now = current.getOrDefault(itemId, 0);
+        return now - prev;
     }
 
     @Override
