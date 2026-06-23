@@ -22,6 +22,7 @@ import com.vxv.chatbet.bet.Poll;
 import com.vxv.chatbet.ui.BetCreationDialog;
 import com.vxv.chatbet.module.BetModule;
 import com.vxv.chatbet.module.PickpocketingModule;
+import com.vxv.chatbet.module.OuraniaAltarModule;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -118,11 +119,9 @@ public class ChatBetPlugin extends Plugin {
         if (msg.equalsIgnoreCase("!chatbet")) { handleChatBetCommand(sender); return; }
         if (msg.toLowerCase().startsWith("!resolve ")) { handleResolveCommand(sender, msg); return; }
 
-        // Delegate chat tracking to active module
+        // Delegate to active module via interface
         if (activeModule != null) {
-            if (activeModule instanceof PickpocketingModule) {
-                ((PickpocketingModule) activeModule).onChatMessage(event);
-            }
+            activeModule.onChatMessage(event);
         }
     }
 
@@ -183,7 +182,7 @@ public class ChatBetPlugin extends Plugin {
         return 0;
     }
 
-    // Full delegation for PickpocketingModule getters to fix Overlay (Java 11 compatible)
+    // Delegation for PickpocketingModule getters (kept for compatibility)
     public int getEtcsObtained() {
         if (activeModule instanceof PickpocketingModule) {
             return ((PickpocketingModule) activeModule).getEtcsObtained();
@@ -246,13 +245,12 @@ public class ChatBetPlugin extends Plugin {
         if (chatBetPanel != null) chatBetPanel.refresh();
         if (task == null || task.isEmpty() || "None".equals(task)) {
             activeModule = null;
-            this.currentGoalPercentage = 0;  // Focused change: reset percentage on cancel/inactive
+            this.currentGoalPercentage = 0;
         } else {
             if (activeModule == null) {
                 activeModule = new PickpocketingModule(this);
             }
         }
-        // Persist to config
         config.selectedTask(task != null ? task : "");
     }
 
