@@ -11,6 +11,7 @@ import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.StatChanged;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class OuraniaAltarModule implements BetModule {
 
