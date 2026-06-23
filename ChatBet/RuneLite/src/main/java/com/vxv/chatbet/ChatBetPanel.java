@@ -1,172 +1,62 @@
 package com.vxv.chatbet;
 
-import net.runelite.client.ui.PluginPanel;
-
+import com.vxv.chatbet.module.PickpocketingModule;
+import net.runelite.client.ui.overlay.components.PanelComponent;
+import net.runelite.client.ui.overlay.components.TitleComponent;
+import net.runelite.client.ui.overlay.components.LineComponent;
 import javax.inject.Inject;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
 
-public class ChatBetPanel extends PluginPanel {
+import net.runelite.client.ui.overlay.OverlayPanel;
+import net.runelite.client.ui.overlay.OverlayPosition;
 
+public class ChatBetPanel extends OverlayPanel {
     private final ChatBetPlugin plugin;
-
-    private JPanel mainPanel;
-    private JPanel goalPanel;
-
-    private JLabel activeTaskLabel;
-    private JSlider goalSlider;
-    private JLabel goalValueLabel;
-
-    private String currentTask = "Pickpocketing Elves";
-    private int currentGoalPercentage = 30;
 
     @Inject
     public ChatBetPanel(ChatBetPlugin plugin) {
         this.plugin = plugin;
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        buildMainPanel();
-        buildGoalPanel();
-
-        // Start on main task list
-        showTaskList();
+        setPosition(OverlayPosition.TOP_LEFT);
     }
 
-    private void buildMainPanel() {
-        mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+    @Override
+    public Dimension render(Graphics2D graphics) {
+        getChildren().clear();  // Use inherited panel component
 
-        JLabel title = new JLabel("ChatBet Tasks");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(title);
-        mainPanel.add(Box.createVerticalStrut(15));
+        String selectedTask = plugin.getSelectedTask();
+        getChildren().add(TitleComponent.builder()
+                .text("ChatBet - " + selectedTask)
+                .color(Color.WHITE)
+                .build());
 
-        // Task button - Pickpocketing Elves
-        JButton elvesButton = new JButton("Pickpocketing Elves");
-        elvesButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        elvesButton.setMaximumSize(new Dimension(200, 40));
-        elvesButton.addActionListener(e -> showGoalConfig("Pickpocketing Elves"));
-        mainPanel.add(elvesButton);
-
-        mainPanel.add(Box.createVerticalGlue());
-
-        activeTaskLabel = new JLabel("Active: None");
-        activeTaskLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(activeTaskLabel);
-
-        // Cancel Current Task button
-        JButton cancelButton = new JButton("Cancel Current Task");
-        cancelButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        cancelButton.setMaximumSize(new Dimension(200, 40));
-        cancelButton.addActionListener(e -> cancelCurrentTask());
-        mainPanel.add(cancelButton);
-    }
-
-    private void buildGoalPanel() {
-        goalPanel = new JPanel();
-        goalPanel.setLayout(new BoxLayout(goalPanel, BoxLayout.Y_AXIS));
-
-        JLabel title = new JLabel("Set Goal");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        goalPanel.add(title);
-        goalPanel.add(Box.createVerticalStrut(10));
-
-        JLabel taskLabel = new JLabel();
-        taskLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        goalPanel.add(taskLabel);
-
-        goalPanel.add(Box.createVerticalStrut(15));
-
-        JLabel percentLabel = new JLabel("Target Percentage:");
-        percentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        goalPanel.add(percentLabel);
-
-        goalSlider = new JSlider(5, 100, 30);
-        goalSlider.setMajorTickSpacing(10);
-        goalSlider.setPaintTicks(true);
-        goalSlider.setPaintLabels(true);
-        goalSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
-        goalSlider.setMaximumSize(new Dimension(220, 50));
-        goalPanel.add(goalSlider);
-
-        goalValueLabel = new JLabel("30%");
-        goalValueLabel.setFont(goalValueLabel.getFont().deriveFont(Font.BOLD, 18f));
-        goalValueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        goalPanel.add(goalValueLabel);
-
-        goalSlider.addChangeListener(e -> {
-            goalValueLabel.setText(goalSlider.getValue() + "%"); 
-        });
-
-        goalPanel.add(Box.createVerticalStrut(15));
-
-        JButton saveButton = new JButton("Save Goal & Activate");
-        saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        saveButton.addActionListener(e -> {
-            currentGoalPercentage = goalSlider.getValue();
-            plugin.setActiveTask(currentTask, currentGoalPercentage);
-            JOptionPane.showMessageDialog(this, "Goal saved! Active task updated.");
-            showTaskList();
-        });
-        goalPanel.add(saveButton);
-
-        JButton backButton = new JButton("Back to Tasks");
-        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        backButton.addActionListener(e -> showTaskList());
-        goalPanel.add(backButton);
-    }
-
-    private void showTaskList() {
-        removeAll();
-        add(mainPanel, BorderLayout.CENTER);
-        updateActiveTaskLabel();
-        revalidate();
-        repaint();
-    }
-
-    private void showGoalConfig(String taskName) {
-        this.currentTask = taskName;
-
-        // Pre-fill slider with current value if this is the active task
-        int existing = plugin.getCurrentGoalPercentage();
-        if (existing > 0) {
-            goalSlider.setValue(existing);
-            goalValueLabel.setText(existing + "%"); 
+        if ("Pickpocketing (Elves)".equals(selectedTask)) {
+            PickpocketingModule module = plugin.getPickpocketingModule();
+            getChildren().add(LineComponent.builder()
+                    .left("Attempts:")
+                    .right(String.valueOf(module.getAttemptsSinceLastEtc()))
+                    .build());
+            getChildren().add(LineComponent.builder()
+                    .left("Successes:")
+                    .right(String.valueOf(module.getSuccessesSinceLastEtc()))
+                    .build());
+            // Add more pickpocketing specific UI
+            getChildren().add(LineComponent.builder()
+                    .left("ETCs:")
+                    .right(String.valueOf(module.getEtcsObtained()))
+                    .build());
+            getChildren().add(LineComponent.builder()
+                    .left("Elves to Goal:")
+                    .right(String.valueOf(module.getElvesToGoal()))
+                    .build());
         } else {
-            goalSlider.setValue(30);
-            goalValueLabel.setText("30%");
+            // Hide pickpocketing UI by not showing specific content or clear panel
+            getChildren().add(LineComponent.builder()
+                    .left("Select a task in the side panel to view stats")
+                    .build());
         }
 
-        removeAll();
-        add(goalPanel, BorderLayout.CENTER);
-        revalidate();
-        repaint();
-    }
-
-    private void updateActiveTaskLabel() {
-        String active = plugin.getActiveTaskName();
-        if (active != null && !active.isEmpty()) {
-            activeTaskLabel.setText("Active: " + active + " (" + plugin.getCurrentGoalPercentage() + "%) ");
-        } else {
-            activeTaskLabel.setText("Active: None");
-        }
-    }
-
-    private void cancelCurrentTask() {
-        if (plugin != null) {
-            // Clear active task
-            plugin.setActiveTask("", 0);
-            JOptionPane.showMessageDialog(this, "Current task cancelled.");
-            refresh();
-        }
-    }
-
-    public void refresh() {
-        updateActiveTaskLabel();
-        revalidate();
-        repaint();
+        return super.render(graphics);
     }
 }
