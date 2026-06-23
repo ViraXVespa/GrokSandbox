@@ -3,6 +3,7 @@ package com.vxv.chatbet.module;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 import com.vxv.chatbet.bet.DropOutcome;
 
@@ -13,6 +14,7 @@ public interface BetModule {
     void onGameTick(GameTick event);
     void onStatChanged(StatChanged event);
     default void onItemContainerChanged(ItemContainerChanged event) {}
+    default void onChatMessage(ChatMessage event) {}
     default List<DropOutcome> getSuggestedOutcomes() {
         return java.util.Collections.emptyList();
     }
