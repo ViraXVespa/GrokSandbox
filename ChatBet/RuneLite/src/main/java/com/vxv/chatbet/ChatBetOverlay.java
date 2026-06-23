@@ -37,10 +37,20 @@ public class ChatBetOverlay extends Overlay
 
         panelComponent.getChildren().clear();
 
+        String activeTask = plugin.getActiveTaskName();
+        boolean isPickpocketingTask = activeTask != null && activeTask.contains("Pickpocketing");
+
         // Title
         panelComponent.getChildren().add(TitleComponent.builder()
-            .text("ChatBet")
+            .text("ChatBet" + (isPickpocketingTask ? " - Pickpocketing Elves" : ""))
             .build());
+
+        if (!isPickpocketingTask) {
+            panelComponent.getChildren().add(LineComponent.builder()
+                .left("Select Pickpocketing Elves task in side panel to view stats")
+                .build());
+            return panelComponent.render(graphics);
+        }
 
         // Active Bets Section
         var activePolls = plugin.getActivePolls();
