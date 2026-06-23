@@ -248,7 +248,11 @@ public class ChatBetPlugin extends Plugin {
             this.currentGoalPercentage = 0;
         } else {
             if (activeModule == null) {
-                activeModule = new PickpocketingModule(this);
+                if ("Ourania Altar Runes".equals(task)) {
+                    activeModule = new OuraniaAltarModule(this);
+                } else {
+                    activeModule = new PickpocketingModule(this);
+                }
             }
         }
         config.selectedTask(task != null ? task : "");
