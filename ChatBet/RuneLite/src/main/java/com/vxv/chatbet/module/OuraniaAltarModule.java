@@ -235,6 +235,22 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     /**
+     * Returns basic odds/weights for the current rune options.
+     * Currently returns uniform weights (1.0 for each).
+     * Raiments of the Eye set can be used in future commits to apply
+     * small biases (e.g. extra rune chance on Ourania).
+     */
+    public Map<String, Double> getRuneOdds(int rcLevel, boolean wearingFullRaiments) {
+        List<String> options = getRuneOptionsForLevel(rcLevel);
+        Map<String, Double> weights = new HashMap<>();
+        for (String option : options) {
+            weights.put(option, 1.0);
+        }
+        // Future enhancement: if (wearingFullRaiments) { adjust weights for higher runes }
+        return weights;
+    }
+
+    /**
      * Called when the first rune is crafted this run.
      * Locks further betting for the remainder of the run.
      */
