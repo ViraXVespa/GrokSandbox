@@ -85,8 +85,8 @@ public class ChatBetPlugin extends Plugin {
                 activeModule = new PickpocketingModule(this);
             }
             // TODO: set active task based on savedTask
-        } else if (activeModule == null) {
-            activeModule = new PickpocketingModule(this);
+        } else {
+            activeModule = null; // Support inactive state
         }
     }
 
@@ -99,6 +99,8 @@ public class ChatBetPlugin extends Plugin {
         // Save current task
         if (activeModule != null) {
             configManager.getConfig(ChatBetConfig.class).selectedTask(activeModule.getName());
+        } else {
+            configManager.getConfig(ChatBetConfig.class).selectedTask("");
         }
     }
 
@@ -242,8 +244,15 @@ public class ChatBetPlugin extends Plugin {
     public void setActiveTask(String task, int goalPercentage) {
         this.currentGoalPercentage = goalPercentage;
         if (chatBetPanel != null) chatBetPanel.refresh();
+        if (task == null || task.isEmpty() || "None".equals(task)) {
+            activeModule = null;
+        } else {
+            if (activeModule == null) {
+                activeModule = new PickpocketingModule(this);
+            }
+        }
         // Persist to config
-        config.selectedTask(task);
+        config.selectedTask(task != null ? task : "");
     }
 
     public double getSuccessRate() { return successes.get() > 0 ? (successes.get() * 100.0 / attempts.get()) : 0.0; }
