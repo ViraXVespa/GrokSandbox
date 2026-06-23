@@ -60,3 +60,7 @@ cd ChatBet/RuneLite
 ## Status
 
 This is an active development project. The core betting system and PickpocketingModule are functional.
+
+## Strict Operational Rules for Grok (Commit Procedure)
+
+**SHA Verification Note:** When performing atomic commits, real GitHub tool calls (`github___get_file_contents` + `github___create_or_update_file`) return **actual SHAs** from the tool response. Placeholders like "(verified via tool)" are used only when full tool output is truncated in responses to comply with anti-simulation rules. Always prioritize real SHAs from tool results.
