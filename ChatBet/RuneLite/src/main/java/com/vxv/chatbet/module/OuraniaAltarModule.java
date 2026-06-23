@@ -195,6 +195,19 @@ public class OuraniaAltarModule implements BetModule {
         // totalEssenceCarried can be reset here if desired in a future commit
     }
 
+    /**
+     * Resolves the current Ourania run poll and ends the run.
+     * winningOptionIndex = the index of the winning rune in currentRuneOptions.
+     * Ties / no bets are handled by BetManager.
+     */
+    public void resolveCurrentRun(int winningOptionIndex) {
+        if (!runActive) return;
+
+        // Actual BetManager.resolvePoll call will be wired in a future atomic commit
+        // (once poll ID tracking is added to createOuraniaPoll flow)
+        endCurrentRun();
+    }
+
     public List<String> getCurrentRuneOptions() {
         return new ArrayList<>(currentRuneOptions);
     }
