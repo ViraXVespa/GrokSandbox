@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import javax.swing.*;
 import com.vxv.chatbet.bet.BetManager;
 import com.vxv.chatbet.bet.Poll;
+import com.vxv.chatbet.bet.BetType;
 import com.vxv.chatbet.ui.BetCreationDialog;
 import com.vxv.chatbet.module.BetModule;
 import com.vxv.chatbet.module.PickpocketingModule;
@@ -283,9 +284,7 @@ public class ChatBetPlugin extends Plugin {
     public void createOuraniaPoll(List<String> options) {
         if (options == null || options.isEmpty()) return;
 
-        // TODO: Proper Poll creation and addition to BetManager
-        // Poll poll = new Poll("Which rune will be most crafted this run?", options);
-        // betManager.addActivePoll(poll); // adjust based on actual BetManager API
-        log.info("Ourania poll would be created with options: " + options);
+        betManager.createPoll("Which rune will be most crafted this run?", BetType.MULTIPLE_CHOICE, options);
+        log.info("Ourania poll created with options: " + options);
     }
 }
