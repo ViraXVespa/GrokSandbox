@@ -3,15 +3,14 @@ package com.vxv.chatbet.module;
 import com.vxv.chatbet.ChatBetPlugin;
 import net.runelite.api.InventoryID;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.StatChanged;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
 
 public class OuraniaAltarModule implements BetModule {
 
@@ -130,9 +129,38 @@ public class OuraniaAltarModule implements BetModule {
 
     private void startNewRun() {
         runActive = true;
-        // TODO: Generate dynamic poll with rune options based on Runecraft level
-        // Example: Bet on which rune will be crafted the most this run
-        // plugin.getBetManager().createPoll(...);
+
+        int rcLevel = 0;
+        if (plugin.getClient() != null) {
+            rcLevel = plugin.getClient().getRealSkillLevel(Skill.RUNECRAFT);
+        }
+
+        List<String> runeOptions = getRuneOptionsForLevel(rcLevel);
+
+        // TODO: Create actual poll via BetManager with these options
+        // Example: plugin.getBetManager().createPoll("Which rune will be most crafted this run?", runeOptions);
+    }
+
+    private List<String> getRuneOptionsForLevel(int level) {
+        List<String> options = new ArrayList<>();
+
+        // Common Ourania runes (simplified for now)
+        options.add("Air rune");
+        options.add("Mind rune");
+        options.add("Water rune");
+        options.add("Earth rune");
+        options.add("Fire rune");
+        options.add("Body rune");
+
+        if (level >= 14) options.add("Cosmic rune");
+        if (level >= 20) options.add("Chaos rune");
+        if (level >= 27) options.add("Astral rune");
+        if (level >= 35) options.add("Nature rune");
+        if (level >= 44) options.add("Law rune");
+        if (level >= 54) options.add("Death rune");
+        if (level >= 65) options.add("Blood rune");
+
+        return options;
     }
 
     @Override
