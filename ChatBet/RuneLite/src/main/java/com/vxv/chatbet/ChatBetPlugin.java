@@ -246,6 +246,7 @@ public class ChatBetPlugin extends Plugin {
         if (chatBetPanel != null) chatBetPanel.refresh();
         if (task == null || task.isEmpty() || "None".equals(task)) {
             activeModule = null;
+            this.currentGoalPercentage = 0;  // Focused change: reset percentage on cancel/inactive
         } else {
             if (activeModule == null) {
                 activeModule = new PickpocketingModule(this);
