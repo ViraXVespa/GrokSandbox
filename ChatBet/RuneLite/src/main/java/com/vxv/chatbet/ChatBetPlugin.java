@@ -300,7 +300,8 @@ public class ChatBetPlugin extends Plugin {
     public Map<String, Double> getOuraniaRuneOdds() {
         if (activeModule instanceof OuraniaAltarModule) {
             OuraniaAltarModule ourania = (OuraniaAltarModule) activeModule;
-            return ourania.getRuneOdds(ourania.getClient() != null ? ourania.getClient().getRealSkillLevel(Skill.RUNECRAFT) : 0, ourania.isWearingFullRaiments());
+            int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
+            return ourania.getRuneOdds(rcLevel, ourania.isWearingFullRaiments());
         }
         return Map.of();
     }
