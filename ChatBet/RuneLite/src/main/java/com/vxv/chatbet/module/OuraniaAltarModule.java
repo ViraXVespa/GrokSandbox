@@ -89,7 +89,7 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     private void updateInventoryTracking(ItemContainer container) {
-        Map<Integer, Integer> currentQtys = new HashMap<>();
+        Map<Integer, Integer> currentQtys = new HashMap<()>;
 
         for (var item : container.getItems()) {
             if (item.getId() > 0) {
@@ -196,15 +196,14 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     /**
-     * Resolves the current Ourania run poll and ends the run.
+     * Resolves the current Ourania run poll (via plugin -> BetManager) and ends the run.
      * winningOptionIndex = the index of the winning rune in currentRuneOptions.
-     * Ties / no bets are handled by BetManager.
+     * Payouts and ties are handled by BetManager.resolvePoll().
      */
     public void resolveCurrentRun(int winningOptionIndex) {
         if (!runActive) return;
 
-        // Actual BetManager.resolvePoll call will be wired in a future atomic commit
-        // (once poll ID tracking is added to createOuraniaPoll flow)
+        plugin.resolveOuraniaPoll(winningOptionIndex);
         endCurrentRun();
     }
 
