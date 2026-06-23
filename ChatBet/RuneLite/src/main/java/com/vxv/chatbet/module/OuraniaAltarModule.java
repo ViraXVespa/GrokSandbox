@@ -355,6 +355,24 @@ public class OuraniaAltarModule implements BetModule {
             .text("Ourania Altar Run")
             .build());
 
+        // Current RC level
+        int rcLevel = 0;
+        if (plugin.getClient() != null) {
+            rcLevel = plugin.getClient().getRealSkillLevel(Skill.RUNECRAFT);
+        }
+        panel.getChildren().add(LineComponent.builder()
+            .left("Runecraft Level")
+            .right(String.valueOf(rcLevel))
+            .build());
+
+        // Total essence carried this run
+        panel.getChildren().add(LineComponent.builder()
+            .left("Essence Carried")
+            .right(totalEssenceCarried.get() + " essence")
+            .build());
+
+        panel.getChildren().add(LineComponent.builder().left("").build()); // spacer
+
         // Current rune options (what the poll is on)
         panel.getChildren().add(LineComponent.builder()
             .left("Rune Options")
