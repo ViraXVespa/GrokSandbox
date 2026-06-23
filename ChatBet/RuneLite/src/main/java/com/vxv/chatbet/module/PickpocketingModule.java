@@ -13,6 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.runelite.client.ui.overlay.components.LineComponent;
+import net.runelite.client.ui.overlay.components.TitleComponent;
+import net.runelite.client.ui.overlay.components.PanelComponent;
+
 @Slf4j
 public class PickpocketingModule implements BetModule {
     private final ChatBetPlugin plugin;
@@ -90,5 +94,107 @@ public class PickpocketingModule implements BetModule {
         double xpPerElf = 353.3;
         return xpNeeded > 0 ? (long) Math.ceil(xpNeeded / xpPerElf) : 0L;
     }
+
+    @Override
+    public void contributeToOverlay(PanelComponent panel) {
+        // XP / Elves Goal
+        int goalPct = plugin.getCurrentGoalPercentage();
+        panel.getChildren().add(LineComponent.builder()
+            .left("XP to " + goalPct + "% Goal")
+            .right(plugin.getXpToGoal() + " XP")
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Elves to Goal")
+            .right(String.valueOf(getElvesToGoal()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder().left("").build()); // spacer
+
+        // Session Stats
+        panel.getChildren().add(TitleComponent.builder()
+            .text("Session Since Login")
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Attempts")
+            .right(String.valueOf(plugin.getAttempts()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Successes")
+            .right(String.valueOf(plugin.getSuccesses()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Success Rate")
+            .right(String.format("%.1f%%", plugin.getSuccessRate()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("ETCs Obtained")
+            .right(String.valueOf(getEtcsObtained()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Est. ETCs to Goal")
+            .right(String.format("%.2f", plugin.getEstimatedEtcsToGoal()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Actual vs Expected ETCs")
+            .right(getEtcsObtained() + " / " + String.format("%.2f", plugin.getExpectedEtcs()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder().left("").build());
+
+        // Since Last ETC
+        panel.getChildren().add(TitleComponent.builder()
+            .text("Since Last ETC")
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Attempts since last")
+            .right(String.valueOf(getAttemptsSinceLastEtc()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Successes since last")
+            .right(String.valueOf(getSuccessesSinceLastEtc()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Probability")
+            .right(String.format("%.2f%%", plugin.getProbEtcFromSuccesses()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder().left("").build());
+
+        // Consumables
+        panel.getChildren().add(TitleComponent.builder()
+            .text("Consumables")
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Dodgy Necklaces (total)")
+            .right(String.valueOf(getDodgyConsumed()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Jugs of Wine (total)")
+            .right(String.valueOf(getWineConsumed()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Dodgy since last ETC")
+            .right(String.valueOf(getDodgySinceLastEtc()))
+            .build());
+
+        panel.getChildren().add(LineComponent.builder()
+            .left("Wine since last ETC")
+            .right(String.valueOf(getWineSinceLastEtc()))
+            .build());
+    }
+
     // Add getters/setters for plugin delegation
 }
