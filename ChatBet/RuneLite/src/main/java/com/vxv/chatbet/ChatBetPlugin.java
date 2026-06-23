@@ -238,4 +238,4 @@ public class ChatBetPlugin extends Plugin {
     }
 
     public void setActiveModule(BetModule module) { this.activeModule = module; }
-} 
+}

@@ -68,9 +68,46 @@ public class PickpocketingModule implements BetModule {
     }
 
     private void updateItemTracking(ItemContainerChanged event) {
-        // Full delta logic for ETC, dodgy, wine moved here
-        log.debug("Item container changed - tracking update triggered in PickpocketingModule");
-        // TODO: Implement checkDelta / inventory comparison
+        ItemContainer container = event.getItemContainer();
+        if (container == null) return;
+
+        // Track deltas for ETC, dodgy, wine
+        int etcDelta = checkDelta(container, ITEM_ETC);
+        if (etcDelta > 0) {
+            etcsObtained.addAndGet(etcDelta);
+            attemptsSinceLastEtc.set(0);
+            successesSinceLastEtc.set(0);
+            dodgySinceLastEtc.set(0);
+            wineSinceLastEtc.set(0);
+            log.info("ETC obtained! Resetting since-last counters");
+        }
+
+        int dodgyDelta = checkDelta(container, ITEM_DODGY_NECKLACE);
+        if (dodgyDelta < 0) {
+            dodgyConsumed.addAndGet(-dodgyDelta);
+            dodgySinceLastEtc.addAndGet(-dodgyDelta);
+        }
+
+        int wineDelta = checkDelta(container, ITEM_JUG_OF_WINE);
+        if (wineDelta < 0) {
+            wineConsumed.addAndGet(-wineDelta);
+            wineSinceLastEtc.addAndGet(-wineDelta);
+        }
+
+        // Update last quantities
+        updateLastQtys(container);
+    }
+
+    private int checkDelta(ItemContainer container, int itemId) {
+        int currentQty = container.count(itemId);
+        int lastQty = lastInventoryQtys.getOrDefault(itemId, 0);
+        return currentQty - lastQty;
+    }
+
+    private void updateLastQtys(ItemContainer container) {
+        lastInventoryQtys.put(ITEM_ETC, container.count(ITEM_ETC));
+        lastInventoryQtys.put(ITEM_DODGY_NECKLACE, container.count(ITEM_DODGY_NECKLACE));
+        lastInventoryQtys.put(ITEM_JUG_OF_WINE, container.count(ITEM_JUG_OF_WINE));
     }
 
     public int getEtcsObtained() { return etcsObtained.get(); }
@@ -89,4 +126,4 @@ public class PickpocketingModule implements BetModule {
     }
 
     // Add getters/setters for plugin delegation
-} 
+}
