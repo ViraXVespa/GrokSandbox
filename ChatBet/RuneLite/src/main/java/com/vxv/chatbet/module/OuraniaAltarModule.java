@@ -38,6 +38,7 @@ public class OuraniaAltarModule implements BetModule {
     private final AtomicInteger totalEssenceCarried = new AtomicInteger(0);
 
     private boolean runActive = false;
+    private boolean firstRuneCrafted = false;
     private List<String> currentRuneOptions = new ArrayList<>();
 
     public OuraniaAltarModule(ChatBetPlugin plugin) {
@@ -163,6 +164,7 @@ public class OuraniaAltarModule implements BetModule {
 
     private void startNewRun() {
         runActive = true;
+        firstRuneCrafted = false;
 
         int rcLevel = 0;
         if (plugin.getClient() != null) {
@@ -198,6 +200,21 @@ public class OuraniaAltarModule implements BetModule {
         if (level >= 65) options.add("Blood rune");
 
         return options;
+    }
+
+    /**
+     * Called when the first rune is crafted this run.
+     * Locks further betting for the remainder of the run.
+     */
+    public void onFirstRuneCrafted() {
+        if (runActive && !firstRuneCrafted) {
+            firstRuneCrafted = true;
+            // Betting is now locked for this run
+        }
+    }
+
+    public boolean isBettingLocked() {
+        return firstRuneCrafted;
     }
 
     @Override
