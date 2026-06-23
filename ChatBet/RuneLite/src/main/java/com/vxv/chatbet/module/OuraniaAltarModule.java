@@ -40,6 +40,7 @@ public class OuraniaAltarModule implements BetModule {
     private boolean runActive = false;
     private boolean firstRuneCrafted = false;
     private List<String> currentRuneOptions = new ArrayList<>();
+    private final Map<String, Integer> runeCraftCounts = new HashMap<>();
 
     public OuraniaAltarModule(ChatBetPlugin plugin) {
         this.plugin = plugin;
@@ -65,7 +66,7 @@ public class OuraniaAltarModule implements BetModule {
 
                 // Automatic resolution on run end: player left the Ourania area
                 if (runActive && !nearBank && !atAltar) {
-                    resolveCurrentRun(0); // placeholder: resolve to first option until we track actual most-crafted rune
+                    resolveCurrentRun(-1); // -1 means auto-detect most crafted
                 }
             }
         }
@@ -175,6 +176,7 @@ public class OuraniaAltarModule implements BetModule {
     private void startNewRun() {
         runActive = true;
         firstRuneCrafted = false;
+        runeCraftCounts.clear();
 
         int rcLevel = 0;
         if (plugin.getClient() != null) {
@@ -192,18 +194,35 @@ public class OuraniaAltarModule implements BetModule {
         runActive = false;
         firstRuneCrafted = false;
         currentRuneOptions.clear();
+        runeCraftCounts.clear();
         // totalEssenceCarried can be reset here if desired in a future commit
     }
 
     /**
-     * Resolves the current Ourania run poll (via plugin -> BetManager) and ends the run.
-     * winningOptionIndex = the index of the winning rune in currentRuneOptions.
-     * Payouts and ties are handled by BetManager.resolvePoll().
+     * Resolves the current Ourania run poll using the actual most-crafted rune.
+     * If winningOptionIndex >= 0, uses that index. Otherwise auto-detects from runeCraftCounts.
      */
     public void resolveCurrentRun(int winningOptionIndex) {
         if (!runActive) return;
 
-        plugin.resolveOuraniaPoll(winningOptionIndex);
+        int finalIndex = winningOptionIndex;
+
+        if (finalIndex < 0 && !runeCraftCounts.isEmpty()) {
+            // Find the rune with the highest craft count
+            String mostCrafted = runeCraftCounts.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+
+            if (mostCrafted != null) {
+                finalIndex = currentRuneOptions.indexOf(mostCrafted);
+                if (finalIndex < 0) finalIndex = 0;
+            }
+        }
+
+        if (finalIndex < 0) finalIndex = 0; // fallback
+
+        plugin.resolveOuraniaPoll(finalIndex);
         endCurrentRun();
     }
 
@@ -266,7 +285,18 @@ public class OuraniaAltarModule implements BetModule {
 
     @Override
     public void onChatMessage(ChatMessage event) {
-        // TODO: Detect bank close, rune crafting messages, etc.
+        if (!runActive) return;
+
+        String msg = event.getMessage();
+        // Basic detection for Ourania rune crafting messages
+        if (msg.contains("You bind the temple's power into")) {
+            for (String option : currentRuneOptions) {
+                if (msg.contains(option)) {
+                    runeCraftCounts.merge(option, 1, Integer::sum);
+                    break;
+                }
+            }
+        }
     }
 
     @Override
