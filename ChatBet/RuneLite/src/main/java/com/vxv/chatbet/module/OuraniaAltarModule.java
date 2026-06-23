@@ -112,9 +112,16 @@ public class OuraniaAltarModule implements BetModule {
         int pureDelta = calculateDelta(lastInventoryQtys, currentQtys, PURE_ESSENCE);
         int daeyaltDelta = calculateDelta(lastInventoryQtys, currentQtys, DAEYALT_ESSENCE);
 
-        // Update total carried (simple accumulation for now)
-        if (pureDelta > 0) totalEssenceCarried.addAndGet(pureDelta);
-        if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
+        // Improve tracking: count essence moved into pouches as still carried
+        // (negative delta while near bank/altar = filling pouches)
+        if (isNearBank() || isAtAltar()) {
+            if (pureDelta != 0) totalEssenceCarried.addAndGet(Math.abs(pureDelta));
+            if (daeyaltDelta != 0) totalEssenceCarried.addAndGet(Math.abs(daeyaltDelta));
+        } else {
+            // Only add positive deltas when away from the area (normal pickup)
+            if (pureDelta > 0) totalEssenceCarried.addAndGet(pureDelta);
+            if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
+        }
 
         // Start run if essence added while near bank or at altar
         if ((pureDelta > 0 || daeyaltDelta > 0) && (isNearBank() || isAtAltar()) && !runActive) {
@@ -135,8 +142,7 @@ public class OuraniaAltarModule implements BetModule {
             }
         }
 
-        // Track pouch item quantities (foundation for essence-inside tracking).
-        // Full essence capacity + fill/empty logic can be added in a later atomic commit.
+        // Improved foundation: store pouch quantities for future essence-inside logic
         lastPouchQtys.clear();
         lastPouchQtys.putAll(currentQtys);
     }
@@ -206,6 +212,13 @@ public class OuraniaAltarModule implements BetModule {
         currentRuneOptions.clear();
         runeCraftCounts.clear();
         // totalEssenceCarried can be reset here if desired in a future commit
+    }
+
+    /**
+     * Returns the total essence brought for this run (including what was moved into pouches).
+     */
+    public int getTotalEssenceCarried() {
+        return totalEssenceCarried.get();
     }
 
     /**
@@ -368,7 +381,7 @@ public class OuraniaAltarModule implements BetModule {
         // Total essence carried this run
         panel.getChildren().add(LineComponent.builder()
             .left("Essence Carried")
-            .right(totalEssenceCarried.get() + " essence")
+            .right(getTotalEssenceCarried() + " essence")
             .build());
 
         panel.getChildren().add(LineComponent.builder().left("").build()); // spacer
