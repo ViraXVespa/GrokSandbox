@@ -103,11 +103,28 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     private void updatePouchTracking(ItemContainer container) {
-        // TODO: Track essence inside pouches (small, medium, large, giant)
+        Map<Integer, Integer> currentQtys = new HashMap<>();
+
+        for (var item : container.getItems()) {
+            if (item.getId() > 0) {
+                currentQtys.merge(item.getId(), item.getQuantity(), Integer::sum);
+            }
+        }
+
+        // Track pouch item quantities (foundation for essence-inside tracking).
+        // Full essence capacity + fill/empty logic can be added in a later atomic commit.
+        lastPouchQtys.clear();
+        lastPouchQtys.putAll(currentQtys);
     }
 
     private boolean isPouchContainer(ItemContainer container) {
-        // Placeholder - will check for pouch item IDs later
+        if (container == null) return false;
+        for (var item : container.getItems()) {
+            int id = item.getId();
+            if (id == SMALL_POUCH || id == MEDIUM_POUCH || id == LARGE_POUCH || id == GIANT_POUCH) {
+                return true;
+            }
+        }
         return false;
     }
 
