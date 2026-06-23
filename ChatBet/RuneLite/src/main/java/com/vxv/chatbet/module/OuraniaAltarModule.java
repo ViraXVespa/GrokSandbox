@@ -63,8 +63,25 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     private void updateInventoryTracking(ItemContainer container) {
-        // TODO: Calculate delta for pure/daeyalt essence
-        // Will be used to detect when player fills pouches or crafts
+        Map<Integer, Integer> currentQtys = new HashMap<>();
+
+        for (var item : container.getItems()) {
+            if (item.getId() > 0) {
+                currentQtys.merge(item.getId(), item.getQuantity(), Integer::sum);
+            }
+        }
+
+        // Calculate deltas for essence types
+        int pureDelta = calculateDelta(lastInventoryQtys, currentQtys, PURE_ESSENCE);
+        int daeyaltDelta = calculateDelta(lastInventoryQtys, currentQtys, DAEYALT_ESSENCE);
+
+        // Update total carried (simple accumulation for now)
+        if (pureDelta > 0) totalEssenceCarried.addAndGet(pureDelta);
+        if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
+
+        // Save current state for next comparison
+        lastInventoryQtys.clear();
+        lastInventoryQtys.putAll(currentQtys);
     }
 
     private void updatePouchTracking(ItemContainer container) {
