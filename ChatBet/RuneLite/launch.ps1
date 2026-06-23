@@ -19,7 +19,7 @@ if ($Build) {
             $output = ""
             & git pull origin main 2>&1 | ForEach-Object {
                 if ($_ -match "Already up to date.") {
-                    Write-Host "No Git update detected... Exiting."
+                    Write-Host "No Git update detected... Exiting." -ForegroundColor Red
                     Exit
                 }
             }
@@ -38,7 +38,7 @@ if ($Build) {
         $BuildOutput += "`r`n"
     }
     if ($Failed) {
-        Write-Host "Build Failed! Exiting! Error Log copied to clipboard!"
+        Write-Host "Build Failed! Exiting! Error Log copied to clipboard!" -ForegroundColor Red
         $BuildOutput | Set-Clipboard
         Exit
     }
