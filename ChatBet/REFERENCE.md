@@ -9,6 +9,7 @@ This is a test edit for the full test cycle as requested. Status: Test cycle com
 - XP tracking delegation improved
 - Java 11 compliant
 - Goal calculation logic updated for accurate "to goal" when already past percentage.
+- Pickpocketing tracking (attempts, successes, consumables) restored in module.
 
 Refer to this doc for architecture and workflow.
 
