@@ -234,7 +234,7 @@ public class OuraniaAltarModule implements BetModule {
             // Find the rune with the highest craft count
             String mostCrafted = runeCraftCounts.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey())
+                .map(Map.Entry::getKey)
                 .orElse(null);
 
             if (mostCrafted != null) {
