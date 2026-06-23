@@ -272,6 +272,10 @@ public class ChatBetPlugin extends Plugin {
 
     public void setActiveModule(BetModule module) { this.activeModule = module; }
 
+    public BetModule getActiveModule() {
+        return activeModule;
+    }
+
     public AtomicInteger getAttempts() { return attempts; }
     public AtomicInteger getSuccesses() { return successes; }
 
