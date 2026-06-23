@@ -283,6 +283,28 @@ public class ChatBetPlugin extends Plugin {
         return List.of();
     }
 
+    public boolean isOuraniaBettingLocked() {
+        if (activeModule instanceof OuraniaAltarModule) {
+            return ((OuraniaAltarModule) activeModule).isBettingLocked();
+        }
+        return false;
+    }
+
+    public boolean isWearingFullRaiments() {
+        if (activeModule instanceof OuraniaAltarModule) {
+            return ((OuraniaAltarModule) activeModule).isWearingFullRaiments();
+        }
+        return false;
+    }
+
+    public Map<String, Double> getOuraniaRuneOdds() {
+        if (activeModule instanceof OuraniaAltarModule) {
+            OuraniaAltarModule ourania = (OuraniaAltarModule) activeModule;
+            return ourania.getRuneOdds(ourania.getClient() != null ? ourania.getClient().getRealSkillLevel(Skill.RUNECRAFT) : 0, ourania.isWearingFullRaiments());
+        }
+        return Map.of();
+    }
+
     public void createOuraniaPoll(List<String> options) {
         if (options == null || options.isEmpty()) return;
 
