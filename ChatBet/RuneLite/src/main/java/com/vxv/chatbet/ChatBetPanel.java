@@ -55,6 +55,13 @@ public class ChatBetPanel extends PluginPanel {
         activeTaskLabel = new JLabel("Active: None");
         activeTaskLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(activeTaskLabel);
+
+        // Cancel Current Task button
+        JButton cancelButton = new JButton("Cancel Current Task");
+        cancelButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cancelButton.setMaximumSize(new Dimension(200, 40));
+        cancelButton.addActionListener(e -> cancelCurrentTask());
+        mainPanel.add(cancelButton);
     }
 
     private void buildGoalPanel() {
@@ -145,6 +152,15 @@ public class ChatBetPanel extends PluginPanel {
             activeTaskLabel.setText("Active: " + active + " (" + plugin.getCurrentGoalPercentage() + "%) ");
         } else {
             activeTaskLabel.setText("Active: None");
+        }
+    }
+
+    private void cancelCurrentTask() {
+        if (plugin != null) {
+            // Clear active task
+            plugin.setActiveTask("", 0);
+            JOptionPane.showMessageDialog(this, "Current task cancelled.");
+            refresh();
         }
     }
 
