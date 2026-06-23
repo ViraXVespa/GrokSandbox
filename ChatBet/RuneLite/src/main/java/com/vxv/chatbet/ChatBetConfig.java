@@ -42,4 +42,11 @@ public interface ChatBetConfig extends Config {
 	default String selectedTask() {
 		return "";
 	}
+
+	@ConfigItem(
+		keyName = "selectedTask",
+		name = "Selected Task",
+		description = "Currently selected betting task"
+	)
+	void selectedTask(String selectedTask);
 }
