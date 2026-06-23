@@ -89,4 +89,4 @@ public class PickpocketingModule implements BetModule {
     }
 
     // Add getters/setters for plugin delegation
-}
+} 
