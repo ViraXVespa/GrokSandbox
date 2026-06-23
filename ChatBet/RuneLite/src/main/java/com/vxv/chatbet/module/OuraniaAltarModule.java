@@ -63,9 +63,9 @@ public class OuraniaAltarModule implements BetModule {
                     // TODO: Add bank-close detection + run start logic here
                 }
 
-                // Basic run-end detection: player left the Ourania area while a run was active
+                // Automatic resolution on run end: player left the Ourania area
                 if (runActive && !nearBank && !atAltar) {
-                    endCurrentRun();
+                    resolveCurrentRun(0); // placeholder: resolve to first option until we track actual most-crafted rune
                 }
             }
         }
@@ -89,7 +89,7 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     private void updateInventoryTracking(ItemContainer container) {
-        Map<Integer, Integer> currentQtys = new HashMap<()>;
+        Map<Integer, Integer> currentQtys = new HashMap<>();
 
         for (var item : container.getItems()) {
             if (item.getId() > 0) {
