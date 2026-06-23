@@ -116,8 +116,8 @@ public class OuraniaAltarModule implements BetModule {
         if (pureDelta > 0) totalEssenceCarried.addAndGet(pureDelta);
         if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
 
-        // Start run if essence added while near bank
-        if ((pureDelta > 0 || daeyaltDelta > 0) && isNearBank() && !runActive) {
+        // Start run if essence added while near bank or at altar
+        if ((pureDelta > 0 || daeyaltDelta > 0) && (isNearBank() || isAtAltar()) && !runActive) {
             startNewRun();
         }
 
