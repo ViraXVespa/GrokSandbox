@@ -92,9 +92,8 @@ public class OuraniaAltarModule implements BetModule {
         if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
 
         // Start run if essence added while near bank
-        if ((pureDelta > 0 || daeyaltDelta > 0) && isAtOuraniaAltar()) {
-            runActive = true;
-            // TODO: Trigger poll generation here when ready
+        if ((pureDelta > 0 || daeyaltDelta > 0) && isAtOuraniaAltar() && !runActive) {
+            startNewRun();
         }
 
         // Save current state for next comparison
@@ -127,6 +126,13 @@ public class OuraniaAltarModule implements BetModule {
         }
         WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
         return playerLoc != null && playerLoc.distanceTo(OURANIA_BANK) < 15;
+    }
+
+    private void startNewRun() {
+        runActive = true;
+        // TODO: Generate dynamic poll with rune options based on Runecraft level
+        // Example: Bet on which rune will be crafted the most this run
+        // plugin.getBetManager().createPoll(...);
     }
 
     @Override
