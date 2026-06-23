@@ -2,6 +2,7 @@ package com.vxv.chatbet.module;
 
 import com.vxv.chatbet.ChatBetPlugin;
 import net.runelite.api.InventoryID;
+import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
@@ -52,6 +53,10 @@ public class OuraniaAltarModule implements BetModule {
     private List<String> currentRuneOptions = new ArrayList<>();
     private final Map<String, Integer> runeCraftCounts = new HashMap<>();
 
+    // State for reliable run starting after banking
+    private boolean waitingForEssenceAfterBank = false;
+    private WorldPoint lastPlayerPosition = null;
+
     public OuraniaAltarModule(ChatBetPlugin plugin) {
         this.plugin = plugin;
     }
@@ -63,22 +68,36 @@ public class OuraniaAltarModule implements BetModule {
 
     @Override
     public void onGameTick(GameTick event) {
-        if (plugin.getClient() != null) {
-            WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
-            if (playerLoc != null) {
-                boolean nearBank = playerLoc.distanceTo(OURANIA_BANK) < 15;
-                boolean atAltar = playerLoc.distanceTo(OURANIA_ALTAR) < 10;
+        if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) return;
 
-                if (nearBank) {
-                    // Player is near Ourania altar bank area
-                    // TODO: Add bank-close detection + run start logic here
-                }
+        WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
+        if (playerLoc == null) return;
 
-                // Automatic resolution on run end: player left the Ourania area
-                if (runActive && !nearBank && !atAltar) {
-                    resolveCurrentRun(-1); // -1 means auto-detect most crafted
+        boolean nearBank = playerLoc.distanceTo(OURANIA_BANK) < 15;
+        boolean atAltar = playerLoc.distanceTo(OURANIA_ALTAR) < 10;
+
+        // === New reliable triggering logic ===
+        if (waitingForEssenceAfterBank && nearBank) {
+            if (lastPlayerPosition != null && !playerLoc.equals(lastPlayerPosition)) {
+                // Player has moved since we saw the bank payment message
+                if (!runActive && hasEssenceInInventory()) {
+                    startNewRun();
+                    waitingForEssenceAfterBank = false;
+                    lastPlayerPosition = null;
+                    return;
                 }
             }
+            lastPlayerPosition = playerLoc;
+        }
+
+        if (!nearBank && !atAltar) {
+            waitingForEssenceAfterBank = false;
+            lastPlayerPosition = null;
+        }
+
+        // Existing auto-resolution when leaving the area
+        if (runActive && !nearBank && !atAltar) {
+            resolveCurrentRun(-1);
         }
     }
 
@@ -113,22 +132,19 @@ public class OuraniaAltarModule implements BetModule {
         int daeyaltDelta = calculateDelta(lastInventoryQtys, currentQtys, DAEYALT_ESSENCE);
 
         // Improve tracking: count essence moved into pouches as still carried
-        // (negative delta while near bank/altar = filling pouches)
         if (isNearBank() || isAtAltar()) {
             if (pureDelta != 0) totalEssenceCarried.addAndGet(Math.abs(pureDelta));
             if (daeyaltDelta != 0) totalEssenceCarried.addAndGet(Math.abs(daeyaltDelta));
         } else {
-            // Only add positive deltas when away from the area (normal pickup)
             if (pureDelta > 0) totalEssenceCarried.addAndGet(pureDelta);
             if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
         }
 
-        // Start run if essence added while near bank or at altar
+        // Start run if essence added while near bank or at altar (fast path)
         if ((pureDelta > 0 || daeyaltDelta > 0) && (isNearBank() || isAtAltar()) && !runActive) {
             startNewRun();
         }
 
-        // Save current state for next comparison
         lastInventoryQtys.clear();
         lastInventoryQtys.putAll(currentQtys);
     }
@@ -142,7 +158,6 @@ public class OuraniaAltarModule implements BetModule {
             }
         }
 
-        // Improved foundation: store pouch quantities for future essence-inside logic
         lastPouchQtys.clear();
         lastPouchQtys.putAll(currentQtys);
     }
@@ -158,10 +173,6 @@ public class OuraniaAltarModule implements BetModule {
         return false;
     }
 
-    /**
-     * Helper to calculate the difference in quantity for a specific item ID
-     * between two maps (previous vs current).
-     */
     private int calculateDelta(Map<Integer, Integer> previous, Map<Integer, Integer> current, int itemId) {
         int prev = previous.getOrDefault(itemId, 0);
         int now = current.getOrDefault(itemId, 0);
@@ -169,22 +180,17 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     private boolean isNearBank() {
-        if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) {
-            return false;
-        }
+        if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) return false;
         WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
         return playerLoc != null && playerLoc.distanceTo(OURANIA_BANK) < 15;
     }
 
     private boolean isAtAltar() {
-        if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) {
-            return false;
-        }
+        if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) return false;
         WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
         return playerLoc != null && playerLoc.distanceTo(OURANIA_ALTAR) < 10;
     }
 
-    // Kept for compatibility; prefer isNearBank() or isAtAltar() in new code
     private boolean isAtOuraniaAltar() {
         return isNearBank();
     }
@@ -200,7 +206,6 @@ public class OuraniaAltarModule implements BetModule {
         }
 
         currentRuneOptions = getRuneOptionsForLevel(rcLevel);
-
         plugin.createOuraniaPoll(currentRuneOptions);
     }
 
@@ -211,27 +216,31 @@ public class OuraniaAltarModule implements BetModule {
         firstRuneCrafted = false;
         currentRuneOptions.clear();
         runeCraftCounts.clear();
-        // totalEssenceCarried can be reset here if desired in a future commit
     }
 
-    /**
-     * Returns the total essence brought for this run (including what was moved into pouches).
-     */
     public int getTotalEssenceCarried() {
         return totalEssenceCarried.get();
     }
 
-    /**
-     * Resolves the current Ourania run poll using the actual most-crafted rune.
-     * If winningOptionIndex >= 0, uses that index. Otherwise auto-detects from runeCraftCounts.
-     */
+    private boolean hasEssenceInInventory() {
+        if (plugin.getClient() == null) return false;
+        ItemContainer inv = plugin.getClient().getItemContainer(InventoryID.INVENTORY);
+        if (inv == null) return false;
+
+        for (Item item : inv.getItems()) {
+            if (item.getId() == PURE_ESSENCE || item.getId() == DAEYALT_ESSENCE) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void resolveCurrentRun(int winningOptionIndex) {
         if (!runActive) return;
 
         int finalIndex = winningOptionIndex;
 
         if (finalIndex < 0 && !runeCraftCounts.isEmpty()) {
-            // Find the rune with the highest craft count
             String mostCrafted = runeCraftCounts.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
@@ -243,7 +252,7 @@ public class OuraniaAltarModule implements BetModule {
             }
         }
 
-        if (finalIndex < 0) finalIndex = 0; // fallback
+        if (finalIndex < 0) finalIndex = 0;
 
         plugin.resolveOuraniaPoll(finalIndex);
         endCurrentRun();
@@ -256,7 +265,6 @@ public class OuraniaAltarModule implements BetModule {
     private List<String> getRuneOptionsForLevel(int level) {
         List<String> options = new ArrayList<>();
 
-        // Common Ourania runes (simplified for now)
         options.add("Air rune");
         options.add("Mind rune");
         options.add("Water rune");
@@ -275,17 +283,12 @@ public class OuraniaAltarModule implements BetModule {
         return options;
     }
 
-    /**
-     * Returns odds/weights for the current rune options.
-     * Applies a small bias when the player is wearing the full Raiments of the Eye set
-     * (representing the set's extra rune chance on Ourania).
-     */
     public Map<String, Double> getRuneOdds(int rcLevel, boolean wearingFullRaiments) {
         List<String> options = getRuneOptionsForLevel(rcLevel);
         Map<String, Double> weights = new HashMap<>();
 
         double base = 1.0;
-        double setBonus = wearingFullRaiments ? 0.35 : 0.0; // small bias from the set effect
+        double setBonus = wearingFullRaiments ? 0.35 : 0.0;
 
         for (String option : options) {
             weights.put(option, base + setBonus);
@@ -294,10 +297,6 @@ public class OuraniaAltarModule implements BetModule {
         return weights;
     }
 
-    /**
-     * Checks if the player is wearing the full Raiments of the Eye set.
-     * Useful for future odds weighting and other set bonuses.
-     */
     public boolean isWearingFullRaiments() {
         if (plugin.getClient() == null) return false;
 
@@ -317,14 +316,9 @@ public class OuraniaAltarModule implements BetModule {
         return hasHat && hasTop && hasBottoms && hasBoots;
     }
 
-    /**
-     * Called when the first rune is crafted this run.
-     * Locks further betting for the remainder of the run.
-     */
     public void onFirstRuneCrafted() {
         if (runActive && !firstRuneCrafted) {
             firstRuneCrafted = true;
-            // Betting is now locked for this run
         }
     }
 
@@ -334,9 +328,17 @@ public class OuraniaAltarModule implements BetModule {
 
     @Override
     public void onChatMessage(ChatMessage event) {
+        String msg = event.getMessage();
+
+        // Detect when player opens the Ourania bank
+        if (msg.contains("Eniola takes your payment")) {
+            waitingForEssenceAfterBank = true;
+            lastPlayerPosition = null;
+            return;
+        }
+
         if (!runActive) return;
 
-        String msg = event.getMessage();
         // Basic detection for Ourania rune crafting messages
         if (msg.contains("You bind the temple's power into")) {
             for (String option : currentRuneOptions) {
@@ -350,7 +352,7 @@ public class OuraniaAltarModule implements BetModule {
 
     @Override
     public long getElvesToGoal() {
-        return 0L; // Not applicable for this module
+        return 0L;
     }
 
     @Override
@@ -363,30 +365,27 @@ public class OuraniaAltarModule implements BetModule {
             return;
         }
 
-        // Active run header
         panel.getChildren().add(TitleComponent.builder()
             .text("Ourania Altar Run")
             .build());
 
-        // Current RC level
         int rcLevel = 0;
         if (plugin.getClient() != null) {
             rcLevel = plugin.getClient().getRealSkillLevel(Skill.RUNECRAFT);
         }
+
         panel.getChildren().add(LineComponent.builder()
             .left("Runecraft Level")
             .right(String.valueOf(rcLevel))
             .build());
 
-        // Total essence carried this run
         panel.getChildren().add(LineComponent.builder()
             .left("Essence Carried")
             .right(getTotalEssenceCarried() + " essence")
             .build());
 
-        panel.getChildren().add(LineComponent.builder().left("").build()); // spacer
+        panel.getChildren().add(LineComponent.builder().left("").build());
 
-        // Current rune options with relative odds
         panel.getChildren().add(LineComponent.builder()
             .left("Rune Options (Odds)")
             .right(String.valueOf(currentRuneOptions.size()))
@@ -406,21 +405,17 @@ public class OuraniaAltarModule implements BetModule {
                 .build());
         }
 
-        panel.getChildren().add(LineComponent.builder().left("").build()); // spacer
+        panel.getChildren().add(LineComponent.builder().left("").build());
 
-        // Betting status
         panel.getChildren().add(LineComponent.builder()
             .left("Betting Locked")
             .right(isBettingLocked() ? "Yes (first rune crafted)" : "No")
             .build());
 
-        // Raiments bonus
         boolean hasRaiments = isWearingFullRaiments();
         panel.getChildren().add(LineComponent.builder()
             .left("Raiments Bonus")
             .right(hasRaiments ? "Active (+35% weight)" : "Inactive")
             .build());
     }
-
-    // Future getters for poll odds, current rune counts, etc. will go here
 }
