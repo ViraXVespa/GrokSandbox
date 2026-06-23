@@ -271,4 +271,12 @@ public class ChatBetPlugin extends Plugin {
 
     public AtomicInteger getAttempts() { return attempts; }
     public AtomicInteger getSuccesses() { return successes; }
+
+    // Delegation for OuraniaAltarModule
+    public List<String> getCurrentRuneOptions() {
+        if (activeModule instanceof OuraniaAltarModule) {
+            return ((OuraniaAltarModule) activeModule).getCurrentRuneOptions();
+        }
+        return List.of();
+    }
 }
