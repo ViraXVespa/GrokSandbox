@@ -39,7 +39,7 @@ public class OuraniaAltarModule implements BetModule {
     private static final WorldPoint OURANIA_ALTAR = new WorldPoint(2460, 3245, 0);
 
     // Basic tracking for essence and pouches
-    private final Map<Integer, Integer> lastInventoryQtys = new HashMap<>();
+    private final Map<Integer, Integer> lastInventoryQtys = new HashMap<()>;
     private final Map<Integer, Integer> lastPouchQtys = new HashMap<>();
     private final AtomicInteger totalEssenceCarried = new AtomicInteger(0);
 
@@ -259,17 +259,21 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     /**
-     * Returns basic odds/weights for the current rune options.
-     * Currently returns uniform weights. Pass the result of isWearingFullRaiments()
-     * for future bias logic based on the set bonus.
+     * Returns odds/weights for the current rune options.
+     * Applies a small bias when the player is wearing the full Raiments of the Eye set
+     * (representing the set's extra rune chance on Ourania).
      */
     public Map<String, Double> getRuneOdds(int rcLevel, boolean wearingFullRaiments) {
         List<String> options = getRuneOptionsForLevel(rcLevel);
         Map<String, Double> weights = new HashMap<>();
+
+        double base = 1.0;
+        double setBonus = wearingFullRaiments ? 0.35 : 0.0; // small bias from the set effect
+
         for (String option : options) {
-            weights.put(option, 1.0);
+            weights.put(option, base + setBonus);
         }
-        // TODO: Apply small bias when wearingFullRaiments == true
+
         return weights;
     }
 
