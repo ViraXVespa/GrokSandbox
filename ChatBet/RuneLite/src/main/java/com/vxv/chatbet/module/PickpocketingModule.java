@@ -56,7 +56,7 @@ public class PickpocketingModule implements BetModule {
         if (event.getSkill() == Skill.THIEVING) {
             log.debug("Thieving XP changed - potential success");
             successesSinceLastEtc.incrementAndGet();
-            // TODO: Full logic for attempt vs success distinction
+            // TODO: Full logic for attempt vs success distinction (e.g., via animation or item drops)
         }
     }
 
@@ -69,8 +69,26 @@ public class PickpocketingModule implements BetModule {
     }
 
     private void updateItemTracking(ItemContainerChanged event) {
+        // Full delta logic for ETC, dodgy, wine moved here
         log.debug("Item container changed - tracking update triggered in PickpocketingModule");
-        // TODO: Full delta logic
+        // TODO: Implement checkDelta / inventory comparison
+    }
+
+    @Override
+    public void onChatMessage(ChatMessage event) {
+        String msg = event.getMessage();
+        if (msg.contains("You attempt to pick the elf's pocket.")) {
+            attemptsSinceLastEtc.incrementAndGet();
+            plugin.getAttempts().incrementAndGet();
+        } else if (msg.contains("You pick the elf's pocket.")) {
+            successesSinceLastEtc.incrementAndGet();
+            plugin.getSuccesses().incrementAndGet();
+        } else if (msg.contains("Your dodgy necklace protects you. It then crumbles to dust.")) {
+            dodgyConsumed.incrementAndGet();
+            dodgySinceLastEtc.incrementAndGet();
+        }
+        // Add wine if needed
+        log.debug("Chat message processed in PickpocketingModule: " + msg);
     }
 
     public int getEtcsObtained() { return etcsObtained.get(); }
@@ -86,36 +104,6 @@ public class PickpocketingModule implements BetModule {
         int xpNeeded = plugin.getXpToGoal();
         double xpPerElf = 353.3;
         return xpNeeded > 0 ? (long) Math.ceil(xpNeeded / xpPerElf) : 0L;
-    }
-
-    // Chat message tracking for attempts, successes, consumables
-    public void onChatMessage(ChatMessage event) {
-        String msg = event.getMessage().toLowerCase();
-        if (msg.contains("you pickpocket") || msg.contains("you steal")) {
-            attemptsSinceLastEtc.incrementAndGet();
-            plugin.getAttempts().incrementAndGet();
-            log.info("Pickpocket attempt detected via chat");
-        }
-        if (msg.contains("you steal an") || msg.contains("etc")) {
-            successesSinceLastEtc.incrementAndGet();
-            plugin.getSuccesses().incrementAndGet();
-            etcsObtained.incrementAndGet();
-            attemptsSinceLastEtc.set(0);
-            successesSinceLastEtc.set(0);
-            dodgySinceLastEtc.set(0);
-            wineSinceLastEtc.set(0);
-            log.info("ETC obtained - resetting since last counters");
-        }
-        if (msg.contains("dodgy necklace") || msg.contains("necklace")) {
-            dodgyConsumed.incrementAndGet();
-            dodgySinceLastEtc.incrementAndGet();
-            log.info("Dodgy necklace consumed");
-        }
-        if (msg.contains("jug of wine") || msg.contains("wine")) {
-            wineConsumed.incrementAndGet();
-            wineSinceLastEtc.incrementAndGet();
-            log.info("Wine consumed");
-        }
     }
 
     // Add getters/setters for plugin delegation
