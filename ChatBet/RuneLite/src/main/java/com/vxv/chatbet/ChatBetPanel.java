@@ -148,7 +148,7 @@ public class ChatBetPanel extends PluginPanel {
 
     private void updateActiveTaskLabel() {
         String active = plugin.getActiveTaskName();
-        if (active != null && !active.isEmpty()) {
+        if (active != null && !active.isEmpty() && !"None".equals(active)) {
             activeTaskLabel.setText("Active: " + active + " (" + plugin.getCurrentGoalPercentage() + "%) ");
         } else {
             activeTaskLabel.setText("Active: None");
