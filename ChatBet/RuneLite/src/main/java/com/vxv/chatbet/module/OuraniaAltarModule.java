@@ -29,6 +29,8 @@ public class OuraniaAltarModule implements BetModule {
 
     // Ourania altar bank area (approximate center)
     private static final WorldPoint OURANIA_BANK = new WorldPoint(2453, 3231, 0);
+    // Actual Ourania Altar location (for future crafting / end detection)
+    private static final WorldPoint OURANIA_ALTAR = new WorldPoint(2460, 3245, 0);
 
     // Basic tracking for essence and pouches
     private final Map<Integer, Integer> lastInventoryQtys = new HashMap<>();
@@ -93,7 +95,7 @@ public class OuraniaAltarModule implements BetModule {
         if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
 
         // Start run if essence added while near bank
-        if ((pureDelta > 0 || daeyaltDelta > 0) && isAtOuraniaAltar() && !runActive) {
+        if ((pureDelta > 0 || daeyaltDelta > 0) && isNearBank() && !runActive) {
             startNewRun();
         }
 
@@ -138,12 +140,25 @@ public class OuraniaAltarModule implements BetModule {
         return now - prev;
     }
 
-    private boolean isAtOuraniaAltar() {
+    private boolean isNearBank() {
         if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) {
             return false;
         }
         WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
         return playerLoc != null && playerLoc.distanceTo(OURANIA_BANK) < 15;
+    }
+
+    private boolean isAtAltar() {
+        if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) {
+            return false;
+        }
+        WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
+        return playerLoc != null && playerLoc.distanceTo(OURANIA_ALTAR) < 10;
+    }
+
+    // Kept for compatibility; prefer isNearBank() or isAtAltar() in new code
+    private boolean isAtOuraniaAltar() {
+        return isNearBank();
     }
 
     private void startNewRun() {
