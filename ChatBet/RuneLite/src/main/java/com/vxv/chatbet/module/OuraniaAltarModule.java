@@ -3,6 +3,7 @@ package com.vxv.chatbet.module;
 import com.vxv.chatbet.ChatBetPlugin;
 import net.runelite.api.InventoryID;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
@@ -26,6 +27,9 @@ public class OuraniaAltarModule implements BetModule {
     private static final int LARGE_POUCH = 5511;
     private static final int GIANT_POUCH = 5512;
 
+    // Ourania altar bank area (approximate center)
+    private static final WorldPoint OURANIA_BANK = new WorldPoint(2453, 3231, 0);
+
     // Basic tracking for essence and pouches
     private final Map<Integer, Integer> lastInventoryQtys = new HashMap<>();
     private final Map<Integer, Integer> lastPouchQtys = new HashMap<>();
@@ -42,7 +46,13 @@ public class OuraniaAltarModule implements BetModule {
 
     @Override
     public void onGameTick(GameTick event) {
-        // TODO: Track essence depletion, altar location, craft detection
+        if (plugin.getClient() != null) {
+            WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
+            if (playerLoc != null && playerLoc.distanceTo(OURANIA_BANK) < 15) {
+                // Player is near Ourania altar bank area
+                // TODO: Add bank-close detection + run start logic here
+            }
+        }
     }
 
     @Override
@@ -101,6 +111,14 @@ public class OuraniaAltarModule implements BetModule {
         int prev = previous.getOrDefault(itemId, 0);
         int now = current.getOrDefault(itemId, 0);
         return now - prev;
+    }
+
+    private boolean isAtOuraniaAltar() {
+        if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) {
+            return false;
+        }
+        WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
+        return playerLoc != null && playerLoc.distanceTo(OURANIA_BANK) < 15;
     }
 
     @Override
