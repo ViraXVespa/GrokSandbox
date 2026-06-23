@@ -33,4 +33,13 @@ public interface ChatBetConfig extends Config {
 	default boolean showDebugVars() {
 		return false;
 	}
+
+	@ConfigItem(
+		keyName = "selectedTask",
+		name = "Selected Task",
+		description = "Currently selected betting task"
+	)
+	default String selectedTask() {
+		return "";
+	}
 }
