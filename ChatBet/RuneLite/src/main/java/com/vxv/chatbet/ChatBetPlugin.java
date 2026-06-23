@@ -77,7 +77,14 @@ public class ChatBetPlugin extends Plugin {
             log.error("Failed to register side panel", e);
         }
 
-        if (activeModule == null) {
+        // Load persisted task
+        String savedTask = config.selectedTask();
+        if (savedTask != null && !savedTask.isEmpty()) {
+            if (activeModule == null) {
+                activeModule = new PickpocketingModule(this);
+            }
+            // TODO: set active task based on savedTask
+        } else if (activeModule == null) {
             activeModule = new PickpocketingModule(this);
         }
     }
@@ -87,6 +94,10 @@ public class ChatBetPlugin extends Plugin {
         overlayManager.remove(overlay);
         if (navButton != null && clientToolbar != null) {
             clientToolbar.removeNavigation(navButton);
+        }
+        // Save current task
+        if (activeModule != null) {
+            configManager.getConfig(ChatBetConfig.class).selectedTask(activeModule.getName());
         }
     }
 
@@ -230,6 +241,8 @@ public class ChatBetPlugin extends Plugin {
     public void setActiveTask(String task, int goalPercentage) {
         this.currentGoalPercentage = goalPercentage;
         if (chatBetPanel != null) chatBetPanel.refresh();
+        // Persist to config
+        config.selectedTask(task);
     }
 
     public double getSuccessRate() { return successes.get() > 0 ? (successes.get() * 100.0 / attempts.get()) : 0.0; }
