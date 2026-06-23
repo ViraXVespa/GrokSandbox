@@ -139,8 +139,7 @@ public class OuraniaAltarModule implements BetModule {
 
         currentRuneOptions = getRuneOptionsForLevel(rcLevel);
 
-        // TODO: Create actual poll via BetManager with these options
-        // Example: plugin.getBetManager().createPoll("Which rune will be most crafted this run?", currentRuneOptions);
+        plugin.createOuraniaPoll(currentRuneOptions);
     }
 
     public List<String> getCurrentRuneOptions() {
