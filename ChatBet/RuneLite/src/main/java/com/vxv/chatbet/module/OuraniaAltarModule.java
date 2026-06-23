@@ -35,6 +35,8 @@ public class OuraniaAltarModule implements BetModule {
     private final Map<Integer, Integer> lastPouchQtys = new HashMap<>();
     private final AtomicInteger totalEssenceCarried = new AtomicInteger(0);
 
+    private boolean runActive = false;
+
     public OuraniaAltarModule(ChatBetPlugin plugin) {
         this.plugin = plugin;
     }
@@ -88,6 +90,12 @@ public class OuraniaAltarModule implements BetModule {
         // Update total carried (simple accumulation for now)
         if (pureDelta > 0) totalEssenceCarried.addAndGet(pureDelta);
         if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
+
+        // Start run if essence added while near bank
+        if ((pureDelta > 0 || daeyaltDelta > 0) && isAtOuraniaAltar()) {
+            runActive = true;
+            // TODO: Trigger poll generation here when ready
+        }
 
         // Save current state for next comparison
         lastInventoryQtys.clear();
