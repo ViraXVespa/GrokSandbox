@@ -386,17 +386,23 @@ public class OuraniaAltarModule implements BetModule {
 
         panel.getChildren().add(LineComponent.builder().left("").build()); // spacer
 
-        // Current rune options (what the poll is on)
+        // Current rune options with relative odds
         panel.getChildren().add(LineComponent.builder()
-            .left("Rune Options")
+            .left("Rune Options (Odds)")
             .right(String.valueOf(currentRuneOptions.size()))
             .build());
 
+        Map<String, Double> odds = getRuneOdds(rcLevel, isWearingFullRaiments());
+        double totalWeight = odds.values().stream().mapToDouble(Double::doubleValue).sum();
+
         for (String option : currentRuneOptions) {
             int count = runeCraftCounts.getOrDefault(option, 0);
+            double weight = odds.getOrDefault(option, 1.0);
+            int probability = totalWeight > 0 ? (int) Math.round((weight / totalWeight) * 100) : 0;
+
             panel.getChildren().add(LineComponent.builder()
                 .left("  " + option)
-                .right(count + " crafted")
+                .right(count + " crafted | ~" + probability + "%")
                 .build());
         }
 
