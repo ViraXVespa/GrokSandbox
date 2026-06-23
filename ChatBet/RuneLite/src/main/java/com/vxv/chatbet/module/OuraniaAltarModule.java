@@ -54,9 +54,19 @@ public class OuraniaAltarModule implements BetModule {
     public void onGameTick(GameTick event) {
         if (plugin.getClient() != null) {
             WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
-            if (playerLoc != null && playerLoc.distanceTo(OURANIA_BANK) < 15) {
-                // Player is near Ourania altar bank area
-                // TODO: Add bank-close detection + run start logic here
+            if (playerLoc != null) {
+                boolean nearBank = playerLoc.distanceTo(OURANIA_BANK) < 15;
+                boolean atAltar = playerLoc.distanceTo(OURANIA_ALTAR) < 10;
+
+                if (nearBank) {
+                    // Player is near Ourania altar bank area
+                    // TODO: Add bank-close detection + run start logic here
+                }
+
+                // Basic run-end detection: player left the Ourania area while a run was active
+                if (runActive && !nearBank && !atAltar) {
+                    endCurrentRun();
+                }
             }
         }
     }
@@ -174,6 +184,15 @@ public class OuraniaAltarModule implements BetModule {
         currentRuneOptions = getRuneOptionsForLevel(rcLevel);
 
         plugin.createOuraniaPoll(currentRuneOptions);
+    }
+
+    private void endCurrentRun() {
+        if (!runActive) return;
+
+        runActive = false;
+        firstRuneCrafted = false;
+        currentRuneOptions.clear();
+        // totalEssenceCarried can be reset here if desired in a future commit
     }
 
     public List<String> getCurrentRuneOptions() {
