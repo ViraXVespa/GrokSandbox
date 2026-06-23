@@ -27,6 +27,12 @@ public class OuraniaAltarModule implements BetModule {
     private static final int LARGE_POUCH = 5511;
     private static final int GIANT_POUCH = 5512;
 
+    // Raiments of the Eye set item IDs
+    private static final int RAIMENTS_HAT = 26865;
+    private static final int RAIMENTS_TOP = 26867;
+    private static final int RAIMENTS_BOTTOMS = 26869;
+    private static final int RAIMENTS_BOOTS = 26871;
+
     // Ourania altar bank area (approximate center)
     private static final WorldPoint OURANIA_BANK = new WorldPoint(2453, 3231, 0);
     // Actual Ourania Altar location (for future crafting / end detection)
@@ -254,9 +260,8 @@ public class OuraniaAltarModule implements BetModule {
 
     /**
      * Returns basic odds/weights for the current rune options.
-     * Currently returns uniform weights (1.0 for each).
-     * Raiments of the Eye set can be used in future commits to apply
-     * small biases (e.g. extra rune chance on Ourania).
+     * Currently returns uniform weights. Pass the result of isWearingFullRaiments()
+     * for future bias logic based on the set bonus.
      */
     public Map<String, Double> getRuneOdds(int rcLevel, boolean wearingFullRaiments) {
         List<String> options = getRuneOptionsForLevel(rcLevel);
@@ -264,8 +269,31 @@ public class OuraniaAltarModule implements BetModule {
         for (String option : options) {
             weights.put(option, 1.0);
         }
-        // Future enhancement: if (wearingFullRaiments) { adjust weights for higher runes }
+        // TODO: Apply small bias when wearingFullRaiments == true
         return weights;
+    }
+
+    /**
+     * Checks if the player is wearing the full Raiments of the Eye set.
+     * Useful for future odds weighting and other set bonuses.
+     */
+    public boolean isWearingFullRaiments() {
+        if (plugin.getClient() == null) return false;
+
+        ItemContainer equipment = plugin.getClient().getItemContainer(InventoryID.EQUIPMENT);
+        if (equipment == null) return false;
+
+        boolean hasHat = false, hasTop = false, hasBottoms = false, hasBoots = false;
+
+        for (var item : equipment.getItems()) {
+            if (item.getId() <= 0) continue;
+            if (item.getId() == RAIMENTS_HAT) hasHat = true;
+            else if (item.getId() == RAIMENTS_TOP) hasTop = true;
+            else if (item.getId() == RAIMENTS_BOTTOMS) hasBottoms = true;
+            else if (item.getId() == RAIMENTS_BOOTS) hasBoots = true;
+        }
+
+        return hasHat && hasTop && hasBottoms && hasBoots;
     }
 
     /**
