@@ -13,6 +13,10 @@ import net.runelite.api.events.StatChanged;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.runelite.client.ui.overlay.components.LineComponent;
+import net.runelite.client.ui.overlay.components.TitleComponent;
+import net.runelite.client.ui.overlay.components.PanelComponent;
+
 public class OuraniaAltarModule implements BetModule {
 
     private final ChatBetPlugin plugin;
@@ -217,7 +221,7 @@ public class OuraniaAltarModule implements BetModule {
             // Find the rune with the highest craft count
             String mostCrafted = runeCraftCounts.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
+                .map(Map.Entry::getKey())
                 .orElse(null);
 
             if (mostCrafted != null) {
@@ -334,6 +338,51 @@ public class OuraniaAltarModule implements BetModule {
     @Override
     public long getElvesToGoal() {
         return 0L; // Not applicable for this module
+    }
+
+    @Override
+    public void contributeToOverlay(PanelComponent panel) {
+        if (!runActive) {
+            panel.getChildren().add(LineComponent.builder()
+                .left("Ourania Altar")
+                .right("No active run")
+                .build());
+            return;
+        }
+
+        // Active run header
+        panel.getChildren().add(TitleComponent.builder()
+            .text("Ourania Altar Run")
+            .build());
+
+        // Current rune options (what the poll is on)
+        panel.getChildren().add(LineComponent.builder()
+            .left("Rune Options")
+            .right(String.valueOf(currentRuneOptions.size()))
+            .build());
+
+        for (String option : currentRuneOptions) {
+            int count = runeCraftCounts.getOrDefault(option, 0);
+            panel.getChildren().add(LineComponent.builder()
+                .left("  " + option)
+                .right(count + " crafted")
+                .build());
+        }
+
+        panel.getChildren().add(LineComponent.builder().left("").build()); // spacer
+
+        // Betting status
+        panel.getChildren().add(LineComponent.builder()
+            .left("Betting Locked")
+            .right(isBettingLocked() ? "Yes (first rune crafted)" : "No")
+            .build());
+
+        // Raiments bonus
+        boolean hasRaiments = isWearingFullRaiments();
+        panel.getChildren().add(LineComponent.builder()
+            .left("Raiments Bonus")
+            .right(hasRaiments ? "Active (+35% weight)" : "Inactive")
+            .build());
     }
 
     // Future getters for poll odds, current rune counts, etc. will go here
