@@ -35,6 +35,7 @@ public class OuraniaAltarModule implements BetModule {
     private final AtomicInteger totalEssenceCarried = new AtomicInteger(0);
 
     private boolean runActive = false;
+    private List<String> currentRuneOptions = new ArrayList<>();
 
     public OuraniaAltarModule(ChatBetPlugin plugin) {
         this.plugin = plugin;
@@ -135,10 +136,14 @@ public class OuraniaAltarModule implements BetModule {
             rcLevel = plugin.getClient().getRealSkillLevel(Skill.RUNECRAFT);
         }
 
-        List<String> runeOptions = getRuneOptionsForLevel(rcLevel);
+        currentRuneOptions = getRuneOptionsForLevel(rcLevel);
 
         // TODO: Create actual poll via BetManager with these options
-        // Example: plugin.getBetManager().createPoll("Which rune will be most crafted this run?", runeOptions);
+        // Example: plugin.getBetManager().createPoll("Which rune will be most crafted this run?", currentRuneOptions);
+    }
+
+    public List<String> getCurrentRuneOptions() {
+        return new ArrayList<>(currentRuneOptions);
     }
 
     private List<String> getRuneOptionsForLevel(int level) {
