@@ -82,13 +82,14 @@ public class ChatBetPlugin extends Plugin {
             log.error("Failed to register side panel", e);
         }
 
-        // Load persisted task
+        // Load persisted task - properly instantiate the correct module
         String savedTask = config.selectedTask();
         if (savedTask != null && !savedTask.isEmpty()) {
-            if (activeModule == null) {
+            if ("Ourania Altar Runes".equals(savedTask)) {
+                activeModule = new OuraniaAltarModule(this);
+            } else {
                 activeModule = new PickpocketingModule(this);
             }
-            // TODO: set active task based on savedTask
         } else {
             activeModule = null; // Support inactive state
         }
