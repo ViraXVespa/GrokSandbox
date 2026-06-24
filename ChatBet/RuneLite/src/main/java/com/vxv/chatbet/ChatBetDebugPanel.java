@@ -83,7 +83,14 @@ public class ChatBetDebugPanel extends PluginPanel {
             if (m.getParameterCount() != 0) continue;
 
             String name = m.getName();
-            if ((name.startsWith("get") || name.startsWith("is")) && !name.equals("getClass")) {
+            if ((name.startsWith("get") || name.startsWith("is"))) {
+                // Skip noisy methods from Object and common useless getters
+                if (m.getDeclaringClass() == Object.class) continue;
+                if (name.equals("getClass") || name.equals("hashCode") ||
+                    name.equals("equals") || name.equals("toString") ||
+                    name.equals("clone") || name.equals("finalize")) continue;
+                if (name.startsWith("notify") || name.startsWith("wait")) continue;
+
                 cachedGetters.add(m);
             }
         }
