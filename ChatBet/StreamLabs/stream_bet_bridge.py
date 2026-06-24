@@ -120,6 +120,17 @@ async def ingest_post(msg: ChatMessage):
     return {"status": "received", "is_command": parsed is not None}
 
 
+@app.get("/chatbet/state")
+async def get_chatbet_state():
+    """Endpoint for RuneLite plugin to poll current command requests and buffer status."""
+    global active_request
+    return {
+        "active_request": active_request,
+        "recent_messages_count": len(recent_messages),
+        "last_updated": int(datetime.now().timestamp() * 1000)
+    }
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="OSRS Stream Bet Bridge")
     parser.add_argument("--debug", action="store_true", help="Enable pretty debug logging")
