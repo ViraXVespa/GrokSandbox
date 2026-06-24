@@ -5,7 +5,6 @@ import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.Skill;
-import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
@@ -40,11 +39,6 @@ public class OuraniaAltarModule implements BetModule {
     private static final int RAIMENTS_TOP = 26867;
     private static final int RAIMENTS_BOTTOMS = 26869;
     private static final int RAIMENTS_BOOTS = 26871;
-
-    // Ourania altar bank area (approximate center)
-    private static final WorldPoint OURANIA_BANK = new WorldPoint(2453, 3231, 0);
-    // Actual Ourania Altar location (for future crafting / end detection)
-    private static final WorldPoint OURANIA_ALTAR = new WorldPoint(2460, 3245, 0);
 
     // Basic tracking for essence and pouches
     private final Map<Integer, Integer> lastInventoryQtys = new HashMap<>();
@@ -557,8 +551,6 @@ public class OuraniaAltarModule implements BetModule {
         vars.put("Wearing Full Raiments", this::isWearingFullRaiments());
         vars.put("First Rune Crafted", () -> firstRuneCrafted);
         vars.put("Waiting For Essence After Bank", () -> waitingForEssenceAfterBank);
-        vars.put("Near Bank", this::isNearBank);
-        vars.put("At Altar", this::isAtAltar);
         if (plugin.getClient() != null) {
             vars.put("Runecraft Level", () -> plugin.getClient().getRealSkillLevel(Skill.RUNECRAFT));
         }
