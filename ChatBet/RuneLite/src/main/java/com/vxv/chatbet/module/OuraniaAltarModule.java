@@ -152,7 +152,7 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     private void updatePouchTracking(ItemContainer container) {
-        Map<Integer, Integer> currentQtys = new HashMap<()>;
+        Map<Integer, Integer> currentQtys = new HashMap<>();
 
         for (var item : container.getItems()) {
             if (item.getId() > 0) {
