@@ -51,6 +51,26 @@ def log_message(platform: str, user: str, message: str, timestamp: Optional[int]
     print(f"[{platform}]{time_str} - {user} - {message}")
 
 
+def parse_chat_command(message: str) -> Optional[dict]:
+    """Detect ChatBet commands (!bet, !odds, !chatbet, etc). Returns parsed info or None for regular chat."""
+    if not message or not message.strip().startswith("!"):
+        return None
+    cleaned = message.strip()
+    parts = cleaned[1:].split(maxsplit=3)
+    if not parts:
+        return None
+    cmd = parts[0].lower()
+    if cmd in ("bet", "wager"):
+        cmd = "bet"
+    elif cmd in ("prob", "odds", "chance", "calculate"):
+        cmd = "odds"
+    return {
+        "command": cmd,
+        "args": parts[1:] if len(parts) > 1 else [],
+        "raw": cleaned
+    }
+
+
 class ChatMessage(BaseModel):
     platform: str = "unknown"
     user: str
