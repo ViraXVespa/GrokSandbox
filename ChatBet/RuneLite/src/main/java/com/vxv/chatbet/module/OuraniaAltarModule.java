@@ -13,6 +13,7 @@ import net.runelite.api.events.StatChanged;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
@@ -243,7 +244,7 @@ public class OuraniaAltarModule implements BetModule {
         if (finalIndex < 0 && !runeCraftCounts.isEmpty()) {
             String mostCrafted = runeCraftCounts.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
+                .map(Map.Entry::getKey())
                 .orElse(null);
 
             if (mostCrafted != null) {
@@ -417,5 +418,18 @@ public class OuraniaAltarModule implements BetModule {
             .left("Raiments Bonus")
             .right(hasRaiments ? "Active (+35% weight)" : "Inactive")
             .build());
+    }
+
+    // === DebugInfoProvider implementation ===
+    @Override
+    public Map<String, Supplier<Object>> getDebugVariables() {
+        Map<String, Supplier<Object>> vars = new LinkedHashMap<>();
+        vars.put("Run Active", () -> runActive);
+        vars.put("Essence Carried", this::getTotalEssenceCarried);
+        vars.put("Rune Options Count", () -> currentRuneOptions.size());
+        vars.put("Betting Locked", this::isBettingLocked);
+        vars.put("Wearing Full Raiments", this::isWearingFullRaiments);
+        vars.put("First Rune Crafted", () -> firstRuneCrafted);
+        return vars;
     }
 }
