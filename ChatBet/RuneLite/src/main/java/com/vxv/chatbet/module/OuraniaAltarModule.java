@@ -109,17 +109,12 @@ public class OuraniaAltarModule implements BetModule {
         int pureDelta = calculateDelta(lastInventoryQtys, currentQtys, PURE_ESSENCE);
         int daeyaltDelta = calculateDelta(lastInventoryQtys, currentQtys, DAEYALT_ESSENCE);
 
-        // Improve tracking: count essence moved into pouches as still carried
-        if (isNearBank() || isAtAltar()) {
-            if (pureDelta != 0) totalEssenceCarried.addAndGet(Math.abs(pureDelta));
-            if (daeyaltDelta != 0) totalEssenceCarried.addAndGet(Math.abs(daeyaltDelta));
-        } else {
-            if (pureDelta > 0) totalEssenceCarried.addAndGet(pureDelta);
-            if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
-        }
+        // Track positive essence deltas (location-independent)
+        if (pureDelta > 0) totalEssenceCarried.addAndGet(pureDelta);
+        if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
 
-        // Fast path: start run if essence added while near bank
-        if ((pureDelta > 0 || daeyaltDelta > 0) && (isNearBank() || isAtAltar()) && !runActive) {
+        // Fast path: start run on essence gain if not already active
+        if ((pureDelta > 0 || daeyaltDelta > 0) && !runActive) {
             startNewRun();
         }
 
@@ -155,22 +150,6 @@ public class OuraniaAltarModule implements BetModule {
         int prev = previous.getOrDefault(itemId, 0);
         int now = current.getOrDefault(itemId, 0);
         return now - prev;
-    }
-
-    private boolean isNearBank() {
-        if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) return false;
-        WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
-        return playerLoc != null && playerLoc.distanceTo(OURANIA_BANK) < 15;
-    }
-
-    private boolean isAtAltar() {
-        if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) return false;
-        WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
-        return playerLoc != null && playerLoc.distanceTo(OURANIA_ALTAR) < 10;
-    }
-
-    private boolean isAtOuraniaAltar() {
-        return isNearBank();
     }
 
     private void startNewRun() {
