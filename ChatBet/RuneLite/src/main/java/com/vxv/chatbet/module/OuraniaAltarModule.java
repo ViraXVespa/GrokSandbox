@@ -430,6 +430,12 @@ public class OuraniaAltarModule implements BetModule {
         vars.put("Betting Locked", this::isBettingLocked);
         vars.put("Wearing Full Raiments", this::isWearingFullRaiments);
         vars.put("First Rune Crafted", () -> firstRuneCrafted);
+        vars.put("Waiting For Essence After Bank", () -> waitingForEssenceAfterBank);
+        vars.put("Near Bank", this::isNearBank);
+        vars.put("At Altar", this::isAtAltar);
+        if (plugin.getClient() != null) {
+            vars.put("Runecraft Level", () -> plugin.getClient().getRealSkillLevel(Skill.RUNECRAFT));
+        }
         return vars;
     }
 }
