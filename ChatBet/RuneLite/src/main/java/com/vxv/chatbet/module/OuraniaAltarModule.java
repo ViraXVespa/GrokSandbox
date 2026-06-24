@@ -280,11 +280,175 @@ public class OuraniaAltarModule implements BetModule {
         List<String> options = getRuneOptionsForLevel(rcLevel);
         Map<String, Double> weights = new HashMap<>();
 
-        double base = 1.0;
-        double setBonus = wearingFullRaiments ? 0.35 : 0.0;
+        double multiplier = wearingFullRaiments ? 1.6 : 1.0;
 
-        for (String option : options) {
-            weights.put(option, base + setBonus);
+        // Real Ourania Altar (ZMI) distributions from OSRS Wiki (exact % per level band)
+        if (rcLevel >= 99) {
+            weights.put("Air rune", 1.0 * multiplier);
+            weights.put("Mind rune", 1.0 * multiplier);
+            weights.put("Water rune", 2.0 * multiplier);
+            weights.put("Earth rune", 3.0 * multiplier);
+            weights.put("Fire rune", 3.0 * multiplier);
+            weights.put("Body rune", 4.0 * multiplier);
+            weights.put("Cosmic rune", 5.0 * multiplier);
+            weights.put("Chaos rune", 6.0 * multiplier);
+            weights.put("Astral rune", 9.5 * multiplier);
+            weights.put("Nature rune", 13.5 * multiplier);
+            weights.put("Law rune", 14.5 * multiplier);
+            weights.put("Death rune", 15.5 * multiplier);
+            weights.put("Blood rune", 13.0 * multiplier);
+            weights.put("Soul rune", 9.0 * multiplier);
+        } else if (rcLevel >= 90) {
+            weights.put("Air rune", 1.0 * multiplier);
+            weights.put("Mind rune", 1.0 * multiplier);
+            weights.put("Water rune", 2.0 * multiplier);
+            weights.put("Earth rune", 3.0 * multiplier);
+            weights.put("Fire rune", 4.0 * multiplier);
+            weights.put("Body rune", 5.0 * multiplier);
+            weights.put("Cosmic rune", 6.0 * multiplier);
+            weights.put("Chaos rune", 7.0 * multiplier);
+            weights.put("Astral rune", 10.0 * multiplier);
+            weights.put("Nature rune", 13.5 * multiplier);
+            weights.put("Law rune", 14.5 * multiplier);
+            weights.put("Death rune", 16.5 * multiplier);
+            weights.put("Blood rune", 10.0 * multiplier);
+            weights.put("Soul rune", 6.5 * multiplier);
+        } else if (rcLevel >= 80) {
+            weights.put("Air rune", 2.0 * multiplier);
+            weights.put("Mind rune", 2.0 * multiplier);
+            weights.put("Water rune", 3.0 * multiplier);
+            weights.put("Earth rune", 4.0 * multiplier);
+            weights.put("Fire rune", 5.0 * multiplier);
+            weights.put("Body rune", 6.0 * multiplier);
+            weights.put("Cosmic rune", 7.0 * multiplier);
+            weights.put("Chaos rune", 8.0 * multiplier);
+            weights.put("Astral rune", 10.5 * multiplier);
+            weights.put("Nature rune", 13.5 * multiplier);
+            weights.put("Law rune", 14.5 * multiplier);
+            weights.put("Death rune", 14.5 * multiplier);
+            weights.put("Blood rune", 6.0 * multiplier);
+            weights.put("Soul rune", 4.0 * multiplier);
+        } else if (rcLevel >= 70) {
+            weights.put("Air rune", 3.0 * multiplier);
+            weights.put("Mind rune", 3.0 * multiplier);
+            weights.put("Water rune", 3.0 * multiplier);
+            weights.put("Earth rune", 4.0 * multiplier);
+            weights.put("Fire rune", 4.0 * multiplier);
+            weights.put("Body rune", 5.0 * multiplier);
+            weights.put("Cosmic rune", 7.0 * multiplier);
+            weights.put("Chaos rune", 9.0 * multiplier);
+            weights.put("Astral rune", 12.0 * multiplier);
+            weights.put("Nature rune", 15.0 * multiplier);
+            weights.put("Law rune", 18.0 * multiplier);
+            weights.put("Death rune", 10.0 * multiplier);
+            weights.put("Blood rune", 5.0 * multiplier);
+            weights.put("Soul rune", 2.0 * multiplier);
+        } else if (rcLevel >= 60) {
+            weights.put("Air rune", 4.5 * multiplier);
+            weights.put("Mind rune", 5.0 * multiplier);
+            weights.put("Water rune", 5.5 * multiplier);
+            weights.put("Earth rune", 6.0 * multiplier);
+            weights.put("Fire rune", 7.0 * multiplier);
+            weights.put("Body rune", 7.5 * multiplier);
+            weights.put("Cosmic rune", 9.5 * multiplier);
+            weights.put("Chaos rune", 10.5 * multiplier);
+            weights.put("Astral rune", 14.0 * multiplier);
+            weights.put("Nature rune", 15.5 * multiplier);
+            weights.put("Law rune", 8.0 * multiplier);
+            weights.put("Death rune", 4.0 * multiplier);
+            weights.put("Blood rune", 2.0 * multiplier);
+            weights.put("Soul rune", 1.0 * multiplier);
+        } else if (rcLevel >= 50) {
+            weights.put("Air rune", 5.0 * multiplier);
+            weights.put("Mind rune", 5.5 * multiplier);
+            weights.put("Water rune", 6.0 * multiplier);
+            weights.put("Earth rune", 6.5 * multiplier);
+            weights.put("Fire rune", 7.0 * multiplier);
+            weights.put("Body rune", 7.5 * multiplier);
+            weights.put("Cosmic rune", 10.0 * multiplier);
+            weights.put("Chaos rune", 11.0 * multiplier);
+            weights.put("Astral rune", 15.0 * multiplier);
+            weights.put("Nature rune", 13.5 * multiplier);
+            weights.put("Law rune", 7.0 * multiplier);
+            weights.put("Death rune", 3.5 * multiplier);
+            weights.put("Blood rune", 1.7 * multiplier);
+            weights.put("Soul rune", 0.8 * multiplier);
+        } else if (rcLevel >= 40) {
+            weights.put("Air rune", 6.0 * multiplier);
+            weights.put("Mind rune", 6.5 * multiplier);
+            weights.put("Water rune", 7.0 * multiplier);
+            weights.put("Earth rune", 7.5 * multiplier);
+            weights.put("Fire rune", 8.0 * multiplier);
+            weights.put("Body rune", 10.0 * multiplier);
+            weights.put("Cosmic rune", 15.0 * multiplier);
+            weights.put("Chaos rune", 20.0 * multiplier);
+            weights.put("Astral rune", 10.0 * multiplier);
+            weights.put("Nature rune", 5.0 * multiplier);
+            weights.put("Law rune", 2.6 * multiplier);
+            weights.put("Death rune", 1.2 * multiplier);
+            weights.put("Blood rune", 0.8 * multiplier);
+            weights.put("Soul rune", 0.4 * multiplier);
+        } else if (rcLevel >= 30) {
+            weights.put("Air rune", 7.0 * multiplier);
+            weights.put("Mind rune", 8.0 * multiplier);
+            weights.put("Water rune", 9.0 * multiplier);
+            weights.put("Earth rune", 11.0 * multiplier);
+            weights.put("Fire rune", 12.0 * multiplier);
+            weights.put("Body rune", 13.0 * multiplier);
+            weights.put("Cosmic rune", 20.0 * multiplier);
+            weights.put("Chaos rune", 10.0 * multiplier);
+            weights.put("Astral rune", 5.0 * multiplier);
+            weights.put("Nature rune", 2.5 * multiplier);
+            weights.put("Law rune", 1.3 * multiplier);
+            weights.put("Death rune", 0.6 * multiplier);
+            weights.put("Blood rune", 0.4 * multiplier);
+            weights.put("Soul rune", 0.2 * multiplier);
+        } else if (rcLevel >= 20) {
+            weights.put("Air rune", 12.0 * multiplier);
+            weights.put("Mind rune", 13.0 * multiplier);
+            weights.put("Water rune", 13.5 * multiplier);
+            weights.put("Earth rune", 14.0 * multiplier);
+            weights.put("Fire rune", 15.0 * multiplier);
+            weights.put("Body rune", 16.0 * multiplier);
+            weights.put("Cosmic rune", 8.0 * multiplier);
+            weights.put("Chaos rune", 4.2 * multiplier);
+            weights.put("Astral rune", 2.1 * multiplier);
+            weights.put("Nature rune", 1.1 * multiplier);
+            weights.put("Law rune", 0.55 * multiplier);
+            weights.put("Death rune", 0.32 * multiplier);
+            weights.put("Blood rune", 0.15 * multiplier);
+            weights.put("Soul rune", 0.08 * multiplier);
+        } else if (rcLevel >= 10) {
+            weights.put("Air rune", 15.0 * multiplier);
+            weights.put("Mind rune", 18.0 * multiplier);
+            weights.put("Water rune", 21.0 * multiplier);
+            weights.put("Earth rune", 24.0 * multiplier);
+            weights.put("Fire rune", 12.0 * multiplier);
+            weights.put("Body rune", 6.0 * multiplier);
+            weights.put("Cosmic rune", 1.75 * multiplier);
+            weights.put("Chaos rune", 0.8 * multiplier);
+            weights.put("Astral rune", 0.6 * multiplier);
+            weights.put("Nature rune", 0.4 * multiplier);
+            weights.put("Law rune", 0.24 * multiplier);
+            weights.put("Death rune", 0.12 * multiplier);
+            weights.put("Blood rune", 0.06 * multiplier);
+            weights.put("Soul rune", 0.03 * multiplier);
+        } else {
+            // 1-9
+            weights.put("Air rune", 50.0 * multiplier);
+            weights.put("Mind rune", 25.0 * multiplier);
+            weights.put("Water rune", 12.0 * multiplier);
+            weights.put("Earth rune", 6.0 * multiplier);
+            weights.put("Fire rune", 3.0 * multiplier);
+            weights.put("Body rune", 1.5 * multiplier);
+            weights.put("Cosmic rune", 0.85 * multiplier);
+            weights.put("Chaos rune", 0.6 * multiplier);
+            weights.put("Astral rune", 0.45 * multiplier);
+            weights.put("Nature rune", 0.3 * multiplier);
+            weights.put("Law rune", 0.15 * multiplier);
+            weights.put("Death rune", 0.08 * multiplier);
+            weights.put("Blood rune", 0.05 * multiplier);
+            weights.put("Soul rune", 0.02 * multiplier);
         }
 
         return weights;
