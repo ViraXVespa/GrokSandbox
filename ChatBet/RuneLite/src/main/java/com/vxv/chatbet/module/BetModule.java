@@ -6,10 +6,11 @@ import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 import com.vxv.chatbet.bet.DropOutcome;
+import com.vxv.chatbet.debug.DebugInfoProvider;
 
 import java.util.List;
 
-public interface BetModule {
+public interface BetModule extends DebugInfoProvider {
     String getName();
     void onGameTick(GameTick event);
     void onStatChanged(StatChanged event);
