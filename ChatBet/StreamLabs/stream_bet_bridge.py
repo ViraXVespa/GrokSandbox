@@ -34,6 +34,8 @@ DEBUG = os.getenv("DEBUG", "false").lower() in ("1", "true", "yes", "on")
 # Buffer for recent messages (used for command interop + forwarding regular chat to RuneLite)
 recent_messages: deque = deque(maxlen=100)
 
+active_request: Optional[dict] = None
+
 
 def log_message(platform: str, user: str, message: str, timestamp: Optional[int] = None):
     """Pretty print only when --debug is used"""
@@ -91,12 +93,15 @@ async def ingest_get(
     log_message(platform, user, message, timestamp)
     ts = timestamp or int(datetime.now().timestamp() * 1000)
     recent_messages.append({
-        "platform": platform,
-        "user": user,
-        "message": message,
-        "timestamp": ts
+        "platform": platform, "user": user, "message": message, "timestamp": ts
     })
-    return {"status": "received"}
+    parsed = parse_chat_command(message)
+    if parsed:
+        global active_request
+        active_request = {"user": user, "command": parsed["command"], "args": parsed["args"], "timestamp": ts, "raw_message": parsed["raw"]}
+        if DEBUG:
+            print(f"  → Parsed command: !{parsed['command']} {parsed['args']}")
+    return {"status": "received", "is_command": parsed is not None}
 
 
 @app.post("/ingest")
@@ -104,12 +109,15 @@ async def ingest_post(msg: ChatMessage):
     log_message(msg.platform, msg.user, msg.message, msg.timestamp)
     ts = msg.timestamp or int(datetime.now().timestamp() * 1000)
     recent_messages.append({
-        "platform": msg.platform,
-        "user": msg.user,
-        "message": msg.message,
-        "timestamp": ts
+        "platform": msg.platform, "user": msg.user, "message": msg.message, "timestamp": ts
     })
-    return {"status": "received"}
+    parsed = parse_chat_command(msg.message)
+    if parsed:
+        global active_request
+        active_request = {"user": msg.user, "command": parsed["command"], "args": parsed["args"], "timestamp": ts, "raw_message": parsed["raw"]}
+        if DEBUG:
+            print(f"  → Parsed command: !{parsed['command']} {parsed['args']}")
+    return {"status": "received", "is_command": parsed is not None}
 
 
 if __name__ == "__main__":
