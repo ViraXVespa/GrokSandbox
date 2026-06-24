@@ -103,9 +103,9 @@ public class OuraniaAltarModule implements BetModule {
         int pureDelta = calculateDelta(lastInventoryQtys, currentQtys, PURE_ESSENCE);
         int daeyaltDelta = calculateDelta(lastInventoryQtys, currentQtys, DAEYALT_ESSENCE);
 
-        // Track positive essence deltas (location-independent)
-        if (pureDelta > 0) totalEssenceCarried.addAndGet(pureDelta);
-        if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
+        // Track net essence deltas (gains and deposits back into bank)
+        if (pureDelta != 0) totalEssenceCarried.addAndGet(pureDelta);
+        if (daeyaltDelta != 0) totalEssenceCarried.addAndGet(daeyaltDelta);
 
         // Fast path: start run on essence gain if not already active
         if ((pureDelta > 0 || daeyaltDelta > 0) && !runActive) {
