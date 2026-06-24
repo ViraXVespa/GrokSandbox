@@ -69,12 +69,26 @@ async def ingest_get(
     timestamp: Optional[int] = Query(None)
 ):
     log_message(platform, user, message, timestamp)
+    ts = timestamp or int(datetime.now().timestamp() * 1000)
+    recent_messages.append({
+        "platform": platform,
+        "user": user,
+        "message": message,
+        "timestamp": ts
+    })
     return {"status": "received"}
 
 
 @app.post("/ingest")
 async def ingest_post(msg: ChatMessage):
     log_message(msg.platform, msg.user, msg.message, msg.timestamp)
+    ts = msg.timestamp or int(datetime.now().timestamp() * 1000)
+    recent_messages.append({
+        "platform": msg.platform,
+        "user": msg.user,
+        "message": msg.message,
+        "timestamp": ts
+    })
     return {"status": "received"}
 
 
