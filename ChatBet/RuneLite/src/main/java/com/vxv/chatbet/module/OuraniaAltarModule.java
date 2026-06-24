@@ -265,6 +265,7 @@ public class OuraniaAltarModule implements BetModule {
         if (level >= 44) options.add("Law rune");
         if (level >= 54) options.add("Death rune");
         if (level >= 65) options.add("Blood rune");
+        if (level >= 70) options.add("Soul rune");
 
         return options;
     }
@@ -323,7 +324,8 @@ public class OuraniaAltarModule implements BetModule {
             // Direct trigger: if player already has essence, start the run immediately
             if (!runActive && (hasEssenceInInventory() || totalEssenceCarried.get() > 0)) {
                 startNewRun();
-                waitingForEssenceAfterBank = false;
+                // Keep the flag true briefly so debug panel shows it
+                waitingForEssenceAfterBank = true;
             }
             return;
         }
