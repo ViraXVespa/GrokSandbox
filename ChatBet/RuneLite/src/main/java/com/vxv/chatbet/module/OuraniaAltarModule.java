@@ -58,6 +58,7 @@ public class OuraniaAltarModule implements BetModule {
 
     // State for reliable run starting after banking
     private boolean waitingForEssenceAfterBank = false;
+    private int gracePeriodTicks = 0;
 
     public OuraniaAltarModule(ChatBetPlugin plugin) {
         this.plugin = plugin;
@@ -83,8 +84,10 @@ public class OuraniaAltarModule implements BetModule {
             waitingForEssenceAfterBank = false;
         }
 
-        // Existing auto-resolution when leaving the area
-        if (runActive && !nearBank && !atAltar) {
+        // Grace period handling — prevents immediate auto-resolve right after bank-triggered start
+        if (gracePeriodTicks > 0) {
+            gracePeriodTicks--;
+        } else if (runActive && !nearBank && !atAltar) {
             resolveCurrentRun(-1);
         }
     }
@@ -187,6 +190,7 @@ public class OuraniaAltarModule implements BetModule {
         runActive = true;
         firstRuneCrafted = false;
         runeCraftCounts.clear();
+        gracePeriodTicks = 8; // Grace period (~5s) to stabilize poll after bank message startNewRun()
 
         int rcLevel = 0;
         if (plugin.getClient() != null) {
@@ -420,7 +424,7 @@ public class OuraniaAltarModule implements BetModule {
         vars.put("Essence Carried", this::getTotalEssenceCarried);
         vars.put("Rune Options Count", () -> currentRuneOptions.size());
         vars.put("Betting Locked", this::isBettingLocked);
-        vars.put("Wearing Full Raiments", this::isWearingFullRaiments);
+        vars.put("Wearing Full Raiments", this::isWearingFullRaiments());
         vars.put("First Rune Crafted", () -> firstRuneCrafted);
         vars.put("Waiting For Essence After Bank", () -> waitingForEssenceAfterBank);
         vars.put("Near Bank", this::isNearBank);
