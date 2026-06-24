@@ -40,10 +40,15 @@ public class ChatBetDebugPanel extends PluginPanel {
     }
 
     public void refreshDebugInfo() {
-        // TODO: Populate with live values from active module + ChatBetPlugin when showDebugVars() is true
-        if (debugArea != null) {
-            debugArea.setText("Debug info will appear here when enabled.\n\n(Next commits will wire live variable values from the current module and plugin.)");
-        }
+        if (debugArea == null) return;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Active Task: ").append(plugin.getActiveTaskName()).append("\n");
+        sb.append("Current Goal %: ").append(plugin.getCurrentGoalPercentage()).append("\n");
+        sb.append("Module Active: ").append(plugin.getActiveModule() != null).append("\n\n");
+        sb.append("(More values coming in next commits)");
+
+        debugArea.setText(sb.toString());
     }
 
     public JTextArea getDebugArea() {
