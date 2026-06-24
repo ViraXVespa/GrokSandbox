@@ -36,8 +36,9 @@ import java.net.URI;
 import java.time.Duration;
 
 // For forwarding stream chat to in-game chat
- import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.chat.QueuedMessage;
 
 @Slf4j
 @PluginDescriptor(
@@ -341,5 +342,22 @@ public class ChatBetPlugin extends Plugin {
             betManager.resolvePoll(lastOuraniaPollId, winningOptionIndex);
             lastOuraniaPollId = -1;
         }
+    }
+
+    /**
+     * Sends a message from stream chat (non-command, non-emoji) directly into the RuneLite game chat.
+     * Must be called from a background thread; uses clientThread for safety.
+     */
+    private void sendStreamChatToGame(String user, String message) {
+        if (chatMessageManager == null || clientThread == null || message == null || message.isBlank()) return;
+        String text = (user != null && !user.isBlank()) ? "[" + user + "] " + message : message;
+        clientThread.invokeLater(() ->
+            chatMessageManager.queue(
+                QueuedMessage.builder()
+                    .type(ChatMessageType.GAMEMESSAGE)
+                    .value(text)
+                    .build()
+            )
+        );
     }
 }
