@@ -69,7 +69,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     private NavigationButton navButton;
     private NavigationButton debugNavButton;
-    private final BetManager betManager = new BetManager();
+    private final BetManager = new BetManager();
     private BetModule activeModule;
 
     private int lastThievingXp = -1;
@@ -444,7 +444,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     public Map<String, Supplier<Object>> getDebugVariables() {
         Map<String, Supplier<Object>> vars = new LinkedHashMap<>();
         vars.put("Active Task", this::getActiveTaskName);
-        vars.put("Current Goal %", this::getCurrentGoalPercentage());
+        vars.put("Current Goal %", this::getCurrentGoalPercentage);
         vars.put("Debug Mode Enabled", () -> config.showDebugVars());
         vars.put("Active Module Present", () -> activeModule != null);
         vars.put("Last Ourania Poll ID", () -> lastOuraniaPollId);
