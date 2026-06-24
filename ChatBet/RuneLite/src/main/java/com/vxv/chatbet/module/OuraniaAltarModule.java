@@ -77,8 +77,8 @@ public class OuraniaAltarModule implements BetModule {
         boolean nearBank = playerLoc.distanceTo(OURANIA_BANK) < 15;
         boolean atAltar = playerLoc.distanceTo(OURANIA_ALTAR) < 10;
 
-        // === New reliable triggering logic ===
-        if (waitingForEssenceAfterBank && nearBank) {
+        // === Bank run start detection (simplified & more reliable) ===
+        if (waitingForEssenceAfterBank) {
             if (lastPlayerPosition != null && !playerLoc.equals(lastPlayerPosition)) {
                 // Player has moved since we saw the bank payment message
                 if (!runActive && (hasEssenceInInventory() || totalEssenceCarried.get() > 0)) {
@@ -89,11 +89,12 @@ public class OuraniaAltarModule implements BetModule {
                 }
             }
             lastPlayerPosition = playerLoc;
-        }
 
-        if (!nearBank && !atAltar) {
-            waitingForEssenceAfterBank = false;
-            lastPlayerPosition = null;
+            // Safety reset: if player moves far from bank without starting a run
+            if (playerLoc.distanceTo(OURANIA_BANK) > 40) {
+                waitingForEssenceAfterBank = false;
+                lastPlayerPosition = null;
+            }
         }
 
         // Existing auto-resolution when leaving the area
@@ -151,7 +152,7 @@ public class OuraniaAltarModule implements BetModule {
     }
 
     private void updatePouchTracking(ItemContainer container) {
-        Map<Integer, Integer> currentQtys = new HashMap<>();
+        Map<Integer, Integer> currentQtys = new HashMap<()>;
 
         for (var item : container.getItems()) {
             if (item.getId() > 0) {
