@@ -125,6 +125,13 @@ public class OuraniaAltarModule implements BetModule {
             }
         }
 
+        // Track essence inside pouches (fixes login + withdrawing filled pouches from bank)
+        int purePouchDelta = calculateDelta(lastPouchQtys, currentQtys, PURE_ESSENCE);
+        int daeyaltPouchDelta = calculateDelta(lastPouchQtys, currentQtys, DAEYALT_ESSENCE);
+
+        if (purePouchDelta > 0) totalEssenceCarried.addAndGet(purePouchDelta);
+        if (daeyaltPouchDelta > 0) totalEssenceCarried.addAndGet(daeyaltPouchDelta);
+
         lastPouchQtys.clear();
         lastPouchQtys.putAll(currentQtys);
     }
