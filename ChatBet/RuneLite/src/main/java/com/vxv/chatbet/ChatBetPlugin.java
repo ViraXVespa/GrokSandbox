@@ -164,7 +164,10 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
         // Delegate to active module via interface (forward ALL messages)
         if (activeModule != null) {
+            log.info("[ChatBetPlugin] Delegating ChatMessage to active module (" + activeModule.getClass().getSimpleName() + "): " + msg);
             activeModule.onChatMessage(event);
+        } else if (config.showDebugVars()) {
+            log.info("[ChatBetPlugin] No active module - ChatMessage ignored: " + msg);
         }
     }
 
@@ -298,7 +301,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
             if (activeModule == null) {
                 if ("Ourania Altar Runes".equals(task)) {
                     activeModule = new OuraniaAltarModule(this);
-                } else {
+            } else {
                     activeModule = new PickpocketingModule(this);
                 }
             }
@@ -441,7 +444,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     public Map<String, Supplier<Object>> getDebugVariables() {
         Map<String, Supplier<Object>> vars = new LinkedHashMap<>();
         vars.put("Active Task", this::getActiveTaskName);
-        vars.put("Current Goal %", this::getCurrentGoalPercentage);
+        vars.put("Current Goal %", this::getCurrentGoalPercentage());
         vars.put("Debug Mode Enabled", () -> config.showDebugVars());
         vars.put("Active Module Present", () -> activeModule != null);
         vars.put("Last Ourania Poll ID", () -> lastOuraniaPollId);
