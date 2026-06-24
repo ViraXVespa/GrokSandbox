@@ -73,22 +73,9 @@ public class OuraniaAltarModule implements BetModule {
     public void onGameTick(GameTick event) {
         if (plugin.getClient() == null || plugin.getClient().getLocalPlayer() == null) return;
 
-        WorldPoint playerLoc = plugin.getClient().getLocalPlayer().getWorldLocation();
-        if (playerLoc == null) return;
-
-        boolean nearBank = playerLoc.distanceTo(OURANIA_BANK) < 15;
-        boolean atAltar = playerLoc.distanceTo(OURANIA_ALTAR) < 10;
-
-        // Safety reset for the bank flag if player wanders too far
-        if (waitingForEssenceAfterBank && playerLoc.distanceTo(OURANIA_BANK) > 40) {
-            waitingForEssenceAfterBank = false;
-        }
-
         // Grace period handling — prevents immediate auto-resolve right after bank-triggered start
         if (gracePeriodTicks > 0) {
             gracePeriodTicks--;
-        } else if (runActive && !nearBank && !atAltar) {
-            resolveCurrentRun(-1);
         }
     }
 
