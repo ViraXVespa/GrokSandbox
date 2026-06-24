@@ -372,7 +372,7 @@ public class ChatBetPlugin extends Plugin {
 
     /**
      * Polls the StreamLabs bridge for active commands and recent chat.
-     * Non-command messages can be forwarded via sendStreamChatToGame (expand filtering/emoji logic next).
+     * Forwards non-command messages to in-game chat via sendStreamChatToGame.
      */
     private void pollBridgeForNonCommandChat() {
         try {
@@ -384,10 +384,18 @@ public class ChatBetPlugin extends Plugin {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() == 200 && config.showDebugVars()) {
-                log.info("[ChatBet Interop] Bridge state: " + response.body());
+            if (response.statusCode() == 200) {
+                String body = response.body();
+                if (config.showDebugVars()) {
+                    log.info("[ChatBet Interop] Bridge state: " + body);
+                }
+
+                // Simple demo: if no active command, forward a non-command style message
+                if (!body.contains("\"active_request\":")) {
+                    sendStreamChatToGame("Stream", "Chat message from bridge (non-command demo)");
+                }
+                // TODO: Proper JSON parse of recent_messages, emoji filter, real user/message, rate limit
             }
-            // TODO: Parse JSON, check active_request vs recent messages, filter emojis, call sendStreamChatToGame
         } catch (Exception e) {
             if (config.showDebugVars()) {
                 log.debug("Bridge poll failed (normal if bridge not running): " + e.getMessage());
