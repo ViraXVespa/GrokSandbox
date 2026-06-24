@@ -548,7 +548,7 @@ public class OuraniaAltarModule implements BetModule {
         vars.put("Essence Carried", this::getTotalEssenceCarried);
         vars.put("Rune Options Count", () -> currentRuneOptions.size());
         vars.put("Betting Locked", this::isBettingLocked);
-        vars.put("Wearing Full Raiments", this::isWearingFullRaiments());
+        vars.put("Wearing Full Raiments", this::isWearingFullRaiments);
         vars.put("First Rune Crafted", () -> firstRuneCrafted);
         vars.put("Waiting For Essence After Bank", () -> waitingForEssenceAfterBank);
         if (plugin.getClient() != null) {
