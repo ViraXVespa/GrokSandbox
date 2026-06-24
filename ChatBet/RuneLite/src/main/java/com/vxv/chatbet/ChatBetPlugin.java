@@ -24,9 +24,11 @@ import com.vxv.chatbet.ui.BetCreationDialog;
 import com.vxv.chatbet.module.BetModule;
 import com.vxv.chatbet.module.PickpocketingModule;
 import com.vxv.chatbet.module.OuraniaAltarModule;
+import com.vxv.chatbet.debug.DebugInfoProvider;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 // StreamLabs bridge interop (Java 11 HttpClient)
 import java.net.http.HttpClient;
@@ -47,7 +49,7 @@ import net.runelite.client.chat.QueuedMessage;
     tags = {"thieving", "bet", "elves", "xp tracker"}
 )
 @PluginDependency(XpTrackerPlugin.class)
-public class ChatBetPlugin extends Plugin {
+public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     @Inject private Client client;
     @Inject private ChatBetConfig config;
@@ -435,5 +437,16 @@ public class ChatBetPlugin extends Plugin {
                 log.debug("Bridge poll failed (normal if bridge not running): " + e.getMessage());
             }
         }
+    }
+
+    // === DebugInfoProvider implementation ===
+    @Override
+    public Map<String, Supplier<Object>> getDebugVariables() {
+        Map<String, Supplier<Object>> vars = new LinkedHashMap<>();
+        vars.put("Active Task", this::getActiveTaskName);
+        vars.put("Current Goal %", this::getCurrentGoalPercentage);
+        vars.put("Debug Mode Enabled", () -> config.showDebugVars());
+        vars.put("Active Module Present", () -> activeModule != null);
+        return vars;
     }
 }
