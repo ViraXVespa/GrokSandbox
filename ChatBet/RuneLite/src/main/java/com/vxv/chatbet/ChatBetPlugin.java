@@ -370,9 +370,17 @@ public class ChatBetPlugin extends Plugin {
         );
     }
 
+    /** Basic emoji/symbol filter for stream chat (non-emoji messages get forwarded) */
+    private boolean isProbablyEmojiOnly(String msg) {
+        if (msg == null || msg.isBlank()) return true;
+        // Remove common emoji/symbol ranges and punctuation
+        String cleaned = msg.replaceAll("[\\p{So}\\p{Cn}\\p{Cs}\\s:;,.!?()\\[\\]{}'\"-]+", "");
+        return cleaned.length() < 2; // mostly symbols/emojis
+    }
+
     /**
      * Polls the StreamLabs bridge for active commands and recent chat.
-     * Forwards non-command messages to in-game chat via sendStreamChatToGame.
+     * Extracts real messages from recent_messages, skips emojis/commands, forwards via sendStreamChatToGame.
      */
     private void pollBridgeForNonCommandChat() {
         try {
@@ -390,11 +398,19 @@ public class ChatBetPlugin extends Plugin {
                     log.info("[ChatBet Interop] Bridge state: " + body);
                 }
 
-                // Simple demo: if no active command, forward a non-command style message
-                if (!body.contains("\"active_request\":")) {
-                    sendStreamChatToGame("Stream", "Chat message from bridge (non-command demo)");
+                if (body.contains("\"active_request\":null")) {
+                    // Try to extract a simple message from recent_messages (demo parsing)
+                    int start = body.indexOf("message\":\"");
+                    if (start > 0) {
+                        int end = body.indexOf("\"", start + 10);
+                        if (end > start) {
+                            String extractedMsg = body.substring(start + 10, end);
+                            if (!isProbablyEmojiOnly(extractedMsg)) {
+                                sendStreamChatToGame("Stream", extractedMsg);
+                            }
+                        }
+                    }
                 }
-                // TODO: Proper JSON parse of recent_messages, emoji filter, real user/message, rate limit
             }
         } catch (Exception e) {
             if (config.showDebugVars()) {
