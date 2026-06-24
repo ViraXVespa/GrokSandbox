@@ -78,6 +78,10 @@ public class ChatBetPlugin extends Plugin {
 
     private static final String BRIDGE_BASE_URL = "http://127.0.0.1:8765"; // StreamLabs bridge default for chat interop
 
+    private final HttpClient httpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(2))
+        .build();
+
     @Provides
     ChatBetConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(ChatBetConfig.class);
@@ -174,6 +178,11 @@ public class ChatBetPlugin extends Plugin {
 
         if (config.showDebugVars()) {
             log.info("[ChatBet Debug] ...");
+        }
+
+        // Simple periodic poll of bridge for stream chat interop (expand in future commits)
+        if (System.currentTimeMillis() % 5000 < 100) { // rough ~5s interval
+            pollBridgeForNonCommandChat();
         }
     }
 
@@ -359,5 +368,30 @@ public class ChatBetPlugin extends Plugin {
                     .build()
             )
         );
+    }
+
+    /**
+     * Polls the StreamLabs bridge for active commands and recent chat.
+     * Non-command messages can be forwarded via sendStreamChatToGame (expand filtering/emoji logic next).
+     */
+    private void pollBridgeForNonCommandChat() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BRIDGE_BASE_URL + "/chatbet/state"))
+                .timeout(Duration.ofSeconds(2))
+                .GET()
+                .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200 && config.showDebugVars()) {
+                log.info("[ChatBet Interop] Bridge state: " + response.body());
+            }
+            // TODO: Parse JSON, check active_request vs recent messages, filter emojis, call sendStreamChatToGame
+        } catch (Exception e) {
+            if (config.showDebugVars()) {
+                log.debug("Bridge poll failed (normal if bridge not running): " + e.getMessage());
+            }
+        }
     }
 }
