@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 OSRS Stream Bet Bridge
-Receives chat messages forwarded from Streamlabs Chat Box (via custom JS)
-and will later parse betting commands and forward them to the RuneLite plugin.
+Receives chat messages forwarded from Streamlabs Chat Box (via custom JS).
+Sets up interop buffer for ChatBet command routing + forwarding non-command/
+non-emoji stream chat directly into RuneLite chat output.
 
 Run with: python stream_bet_bridge.py --debug
 """
@@ -15,6 +16,7 @@ import uvicorn
 import argparse
 import os
 from typing import Optional
+from collections import deque
 
 app = FastAPI(title="OSRS Stream Bet Bridge")
 
@@ -28,6 +30,9 @@ app.add_middleware(
 
 # Module-level debug flag
 DEBUG = os.getenv("DEBUG", "false").lower() in ("1", "true", "yes", "on")
+
+# Buffer for recent messages (used for command interop + forwarding regular chat to RuneLite)
+recent_messages: deque = deque(maxlen=100)
 
 
 def log_message(platform: str, user: str, message: str, timestamp: Optional[int] = None):
@@ -89,7 +94,7 @@ if __name__ == "__main__":
     print(f"URL: http://127.0.0.1:{args.port}")
     print(f"Debug mode: {'ENABLED' if DEBUG else 'disabled'}")
     if DEBUG:
-        print("→ Messages will appear in clean format: [platform]HH:MM:SS - user - message")
+        print(→ Messages will appear in clean format: [platform]HH:MM:SS - user - message")
     print(f"{'='*60}\n")
 
     uvicorn.run(
