@@ -344,6 +344,7 @@ public class ChatBetPlugin extends Plugin {
         Poll poll = betManager.createPoll("Which rune will be most crafted this run?", BetType.MULTIPLE_CHOICE, options);
         lastOuraniaPollId = poll.getId();
         log.info("Ourania poll created with options: " + options);
+        if (chatBetPanel != null) chatBetPanel.refresh();
     }
 
     public void resolveOuraniaPoll(int winningOptionIndex) {
