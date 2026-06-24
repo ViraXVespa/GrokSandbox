@@ -28,6 +28,13 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+// StreamLabs bridge interop (Java 11 HttpClient)
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.URI;
+import java.time.Duration;
+
 @Slf4j
 @PluginDescriptor(
     name = "ChatBet",
@@ -57,6 +64,8 @@ public class ChatBetPlugin extends Plugin {
 
     @Getter private final AtomicInteger attempts = new AtomicInteger(0);
     @Getter private final AtomicInteger successes = new AtomicInteger(0);
+
+    private static final String BRIDGE_BASE_URL = "http://127.0.0.1:8765"; // StreamLabs bridge default for chat interop
 
     @Provides
     ChatBetConfig provideConfig(ConfigManager configManager) {
@@ -273,9 +282,7 @@ public class ChatBetPlugin extends Plugin {
 
     public void setActiveModule(BetModule module) { this.activeModule = module; }
 
-    public BetModule getActiveModule() {
-        return activeModule;
-    }
+    public BetModule getActiveModule() { return activeModule; }
 
     public AtomicInteger getAttempts() { return attempts; }
     public AtomicInteger getSuccesses() { return successes; }
