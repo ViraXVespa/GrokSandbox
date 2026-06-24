@@ -543,7 +543,7 @@ public class OuraniaAltarModule implements BetModule {
         boolean hasRaiments = isWearingFullRaiments();
         panel.getChildren().add(LineComponent.builder()
             .left("Raiments Bonus")
-            .right(hasRaiments ? "Active (+35% weight)" : "Inactive")
+            .right(hasRaiments ? "Active (+60% weight)" : "Inactive")
             .build());
     }
 
