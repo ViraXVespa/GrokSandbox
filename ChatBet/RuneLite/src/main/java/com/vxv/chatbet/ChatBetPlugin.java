@@ -55,6 +55,7 @@ public class ChatBetPlugin extends Plugin {
     @Inject private ChatBetOverlay overlay;
     @Inject private ClientToolbar clientToolbar;
     @Inject private ChatBetPanel chatBetPanel;
+    @Inject private ChatBetDebugPanel chatBetDebugPanel;
     @Inject private XpTrackerService xpTrackerService;
     @Inject private ConfigManager configManager;
 
@@ -65,6 +66,7 @@ public class ChatBetPlugin extends Plugin {
     private ClientThread clientThread;
 
     private NavigationButton navButton;
+    private NavigationButton debugNavButton;
     private final BetManager betManager = new BetManager();
     private BetModule activeModule;
 
@@ -102,8 +104,19 @@ public class ChatBetPlugin extends Plugin {
                 clientToolbar.addNavigation(navButton);
                 log.info("ChatBet side panel registered successfully");
             }
+
+            if (clientToolbar != null && chatBetDebugPanel != null) {
+                BufferedImage debugIcon = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+                debugNavButton = NavigationButton.builder()
+                    .tooltip("ChatBet Debug")
+                    .icon(debugIcon)
+                    .panel(chatBetDebugPanel)
+                    .build();
+                clientToolbar.addNavigation(debugNavButton);
+                log.info("ChatBet Debug panel registered successfully");
+            }
         } catch (Exception e) {
-            log.error("Failed to register side panel", e);
+            log.error("Failed to register side panels", e);
         }
 
         // Load persisted task - properly instantiate the correct module
@@ -124,6 +137,9 @@ public class ChatBetPlugin extends Plugin {
         overlayManager.remove(overlay);
         if (navButton != null && clientToolbar != null) {
             clientToolbar.removeNavigation(navButton);
+        }
+        if (debugNavButton != null && clientToolbar != null) {
+            clientToolbar.removeNavigation(debugNavButton);
         }
         // Save current task
         if (activeModule != null) {
@@ -352,7 +368,8 @@ public class ChatBetPlugin extends Plugin {
 
     /**
      * Sends a message from stream chat (non-command, non-emoji) directly into the RuneLite game chat.
-     * Must be called from a background thread; uses clientThread for safety.
+     * Must be called from a background thread;
+     * uses clientThread for safety.
      */
     private void sendStreamChatToGame(String user, String message) {
         if (chatMessageManager == null || clientThread == null || message == null || message.isBlank()) return;
