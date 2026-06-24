@@ -447,6 +447,10 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         vars.put("Current Goal %", this::getCurrentGoalPercentage);
         vars.put("Debug Mode Enabled", () -> config.showDebugVars());
         vars.put("Active Module Present", () -> activeModule != null);
+        vars.put("Last Ourania Poll ID", () -> lastOuraniaPollId);
+        vars.put("Active Polls Count", () -> betManager.getActivePolls().size());
+        vars.put("Current Thieving XP", () -> (client != null ? client.getSkillExperience(Skill.THIEVING) : -1));
+        vars.put("Bridge Base URL", () -> BRIDGE_BASE_URL);
         return vars;
     }
 }
