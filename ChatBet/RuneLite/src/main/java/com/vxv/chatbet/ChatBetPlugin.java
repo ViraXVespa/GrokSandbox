@@ -35,6 +35,10 @@ import java.net.http.HttpResponse;
 import java.net.URI;
 import java.time.Duration;
 
+// For forwarding stream chat to in-game chat
+ import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.callback.ClientThread;
+
 @Slf4j
 @PluginDescriptor(
     name = "ChatBet",
@@ -52,6 +56,12 @@ public class ChatBetPlugin extends Plugin {
     @Inject private ChatBetPanel chatBetPanel;
     @Inject private XpTrackerService xpTrackerService;
     @Inject private ConfigManager configManager;
+
+    @Inject
+    private ChatMessageManager chatMessageManager;
+
+    @Inject
+    private ClientThread clientThread;
 
     private NavigationButton navButton;
     private final BetManager betManager = new BetManager();
