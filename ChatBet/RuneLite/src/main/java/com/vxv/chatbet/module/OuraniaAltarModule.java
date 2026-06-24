@@ -321,11 +321,10 @@ public class OuraniaAltarModule implements BetModule {
         if (msg.contains("Eniola takes your payment")) {
             waitingForEssenceAfterBank = true;
 
-            // Direct trigger: if player already has essence, start the run immediately
-            if (!runActive && (hasEssenceInInventory() || totalEssenceCarried.get() > 0)) {
+            // Always attempt to start a run when we see the payment message
+            // (more reliable than checking essence at this exact moment)
+            if (!runActive) {
                 startNewRun();
-                // Keep the flag true briefly so debug panel shows it
-                waitingForEssenceAfterBank = true;
             }
             return;
         }
