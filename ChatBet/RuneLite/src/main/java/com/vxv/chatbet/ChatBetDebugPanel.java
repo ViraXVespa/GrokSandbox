@@ -7,12 +7,18 @@ import net.runelite.client.ui.PluginPanel;
 import javax.inject.Inject;
 import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChatBetDebugPanel extends PluginPanel {
 
     private final ChatBetPlugin plugin;
-
     private JTextArea debugArea;
+
+    // Cached getters discovered via reflection (populated once per target change)
+    private final List<Method> cachedGetters = new ArrayList<>();
+    private Object lastWatchedTarget = null;
 
     @Inject
     public ChatBetDebugPanel(ChatBetPlugin plugin) {
@@ -44,13 +50,43 @@ public class ChatBetDebugPanel extends PluginPanel {
     public void refreshDebugInfo() {
         if (debugArea == null) return;
 
+        Object currentTarget = (plugin.getActiveModule() != null)
+                ? plugin.getActiveModule()
+                : plugin;
+
+        // Only perform reflection when the watched object changes
+        if (lastWatchedTarget != currentTarget) {
+            cachedGetters.clear();
+            discoverGetters(currentTarget);
+            lastWatchedTarget = currentTarget;
+        }
+
         StringBuilder sb = new StringBuilder();
-        sb.append("Active Task: ").append(plugin.getActiveTaskName()).append("\n");
-        sb.append("Current Goal %: ").append(plugin.getCurrentGoalPercentage()).append("\n");
-        sb.append("Module Active: ").append(plugin.getActiveModule() != null).append("\n\n");
-        sb.append("(More values coming in next commits)");
+        sb.append("=== ChatBet Live Debug ===\n\n");
+
+        for (Method m : cachedGetters) {
+            try {
+                Object value = m.invoke(currentTarget);
+                sb.append(m.getName()).append(": ").append(value).append("\n");
+            } catch (Exception ignored) {
+                // Skip getters that fail
+            }
+        }
 
         debugArea.setText(sb.toString());
+    }
+
+    private void discoverGetters(Object target) {
+        if (target == null) return;
+
+        for (Method m : target.getClass().getMethods()) {
+            if (m.getParameterCount() != 0) continue;
+
+            String name = m.getName();
+            if ((name.startsWith("get") || name.startsWith("is")) && !name.equals("getClass")) {
+                cachedGetters.add(m);
+            }
+        }
     }
 
     public JTextArea getDebugArea() {
