@@ -153,9 +153,6 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     @Subscribe
     public void onChatMessage(ChatMessage event) {
-        ChatMessageType type = event.getType();
-        if (type != ChatMessageType.GAMEMESSAGE && type != ChatMessageType.SPAM && type != ChatMessageType.PUBLICCHAT) return;
-
         String msg = event.getMessage();
         String sender = event.getName();
 
@@ -165,7 +162,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         if (msg.equalsIgnoreCase("!chatbet")) { handleChatBetCommand(sender); return; }
         if (msg.toLowerCase().startsWith("!resolve ")) { handleResolveCommand(sender, msg); return; }
 
-        // Delegate to active module via interface
+        // Delegate to active module via interface (forward ALL messages)
         if (activeModule != null) {
             activeModule.onChatMessage(event);
         }
