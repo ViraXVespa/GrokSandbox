@@ -56,7 +56,6 @@ public class OuraniaAltarModule implements BetModule {
 
     // State for reliable run starting after banking
     private boolean waitingForEssenceAfterBank = false;
-    private WorldPoint lastPlayerPosition = null;
 
     public OuraniaAltarModule(ChatBetPlugin plugin) {
         this.plugin = plugin;
@@ -77,24 +76,9 @@ public class OuraniaAltarModule implements BetModule {
         boolean nearBank = playerLoc.distanceTo(OURANIA_BANK) < 15;
         boolean atAltar = playerLoc.distanceTo(OURANIA_ALTAR) < 10;
 
-        // === Bank run start detection (simplified & more reliable) ===
-        if (waitingForEssenceAfterBank) {
-            if (lastPlayerPosition != null && !playerLoc.equals(lastPlayerPosition)) {
-                // Player has moved since we saw the bank payment message
-                if (!runActive && (hasEssenceInInventory() || totalEssenceCarried.get() > 0)) {
-                    startNewRun();
-                    waitingForEssenceAfterBank = false;
-                    lastPlayerPosition = null;
-                    return;
-                }
-            }
-            lastPlayerPosition = playerLoc;
-
-            // Safety reset: if player moves far from bank without starting a run
-            if (playerLoc.distanceTo(OURANIA_BANK) > 40) {
-                waitingForEssenceAfterBank = false;
-                lastPlayerPosition = null;
-            }
+        // Safety reset for the bank flag if player wanders too far
+        if (waitingForEssenceAfterBank && playerLoc.distanceTo(OURANIA_BANK) > 40) {
+            waitingForEssenceAfterBank = false;
         }
 
         // Existing auto-resolution when leaving the area
@@ -142,7 +126,7 @@ public class OuraniaAltarModule implements BetModule {
             if (daeyaltDelta > 0) totalEssenceCarried.addAndGet(daeyaltDelta);
         }
 
-        // Start run if essence added while near bank or at altar (fast path)
+        // Fast path: start run if essence added while near bank
         if ((pureDelta > 0 || daeyaltDelta > 0) && (isNearBank() || isAtAltar()) && !runActive) {
             startNewRun();
         }
@@ -332,10 +316,15 @@ public class OuraniaAltarModule implements BetModule {
     public void onChatMessage(ChatMessage event) {
         String msg = event.getMessage();
 
-        // Detect when player opens the Ourania bank (partial match - message can vary)
+        // Detect when player opens the Ourania bank
         if (msg.contains("Eniola takes your payment")) {
             waitingForEssenceAfterBank = true;
-            lastPlayerPosition = null;
+
+            // Direct trigger: if player already has essence, start the run immediately
+            if (!runActive && (hasEssenceInInventory() || totalEssenceCarried.get() > 0)) {
+                startNewRun();
+                waitingForEssenceAfterBank = false;
+            }
             return;
         }
 
