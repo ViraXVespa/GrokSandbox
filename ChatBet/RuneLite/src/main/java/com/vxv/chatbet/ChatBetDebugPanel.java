@@ -4,6 +4,7 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 
+import javax.inject.Inject;
 import javax.swing.*;
 import java.awt.*;
 
@@ -13,6 +14,7 @@ public class ChatBetDebugPanel extends PluginPanel {
 
     private JTextArea debugArea;
 
+    @Inject
     public ChatBetDebugPanel(ChatBetPlugin plugin) {
         this.plugin = plugin;
         setLayout(new BorderLayout());
