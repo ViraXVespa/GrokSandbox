@@ -69,7 +69,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     private NavigationButton navButton;
     private NavigationButton debugNavButton;
-    private final BetManager = new BetManager();
+    private final BetManager betManager = new BetManager();
     private BetModule activeModule;
 
     private int lastThievingXp = -1;
