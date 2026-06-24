@@ -4,19 +4,22 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 
+import com.vxv.chatbet.debug.DebugInfoProvider;
 import javax.inject.Inject;
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 public class ChatBetDebugPanel extends PluginPanel {
 
     private final ChatBetPlugin plugin;
     private JTextArea debugArea;
 
-    // Cached getters discovered via reflection (populated once per target change)
+    // Cached getters discovered via reflection (fallback only)
     private final List<Method> cachedGetters = new ArrayList<>();
     private Object lastWatchedTarget = null;
 
@@ -55,13 +58,6 @@ public class ChatBetDebugPanel extends PluginPanel {
                 ? plugin.getActiveModule()
                 : (Object) plugin;
 
-        // Only perform reflection when the watched object changes
-        if (lastWatchedTarget != currentTarget) {
-            cachedGetters.clear();
-            discoverGetters(currentTarget);
-            lastWatchedTarget = currentTarget;
-        }
-
         StringBuilder sb = new StringBuilder();
         if (hasActiveModule) {
             sb.append("=== Active Module: ")
@@ -71,13 +67,35 @@ public class ChatBetDebugPanel extends PluginPanel {
             sb.append("=== ChatBetPlugin (No Active Task) ===\n\n");
         }
 
+        // Preferred path: Use explicit DebugInfoProvider if available
+        if (currentTarget instanceof DebugInfoProvider) {
+            DebugInfoProvider provider = (DebugInfoProvider) currentTarget;
+            Map<String, Supplier<Object>> vars = provider.getDebugVariables();
+
+            if (vars != null && !vars.isEmpty()) {
+                for (Map.Entry<String, Supplier<Object>> entry : vars.entrySet()) {
+                    try {
+                        Object value = entry.getValue().get();
+                        sb.append(entry.getKey()).append(": ").append(value).append("\n");
+                    } catch (Exception ignored) {}
+                }
+                debugArea.setText(sb.toString());
+                return; // Done - no need for reflection fallback
+            }
+        }
+
+        // Fallback: reflection-based discovery (for backward compatibility during transition)
+        if (lastWatchedTarget != currentTarget) {
+            cachedGetters.clear();
+            discoverGetters(currentTarget);
+            lastWatchedTarget = currentTarget;
+        }
+
         for (Method m : cachedGetters) {
             try {
                 Object value = m.invoke(currentTarget);
                 sb.append(m.getName()).append(": ").append(value).append("\n");
-            } catch (Exception ignored) {
-                // Skip getters that fail
-            }
+            } catch (Exception ignored) {}
         }
 
         debugArea.setText(sb.toString());
@@ -91,7 +109,6 @@ public class ChatBetDebugPanel extends PluginPanel {
 
             String name = m.getName();
             if ((name.startsWith("get") || name.startsWith("is"))) {
-                // Skip noisy methods from Object and common useless getters
                 if (m.getDeclaringClass() == Object.class) continue;
                 if (name.equals("getClass") || name.equals("hashCode") ||
                     name.equals("equals") || name.equals("toString") ||
