@@ -15,10 +15,12 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 
+@Slf4j
 public class OuraniaAltarModule implements BetModule {
 
     private final ChatBetPlugin plugin;
@@ -317,12 +319,11 @@ public class OuraniaAltarModule implements BetModule {
     public void onChatMessage(ChatMessage event) {
         String msg = event.getMessage();
 
-        // Detect when player opens the Ourania bank
-        if (msg.contains("Eniola takes your payment")) {
+        // Detect when player opens the Ourania bank (case-insensitive)
+        if (msg.toLowerCase().contains("eniola takes your payment")) {
+            log.info("[OuraniaAltar] Bank payment message detected: " + msg);
             waitingForEssenceAfterBank = true;
 
-            // Always attempt to start a run when we see the payment message
-            // (more reliable than checking essence at this exact moment)
             if (!runActive) {
                 startNewRun();
             }
