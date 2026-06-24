@@ -50,9 +50,10 @@ public class ChatBetDebugPanel extends PluginPanel {
     public void refreshDebugInfo() {
         if (debugArea == null) return;
 
-        Object currentTarget = (plugin.getActiveModule() != null)
+        boolean hasActiveModule = plugin.getActiveModule() != null;
+        Object currentTarget = hasActiveModule
                 ? plugin.getActiveModule()
-                : plugin;
+                : (Object) plugin;
 
         // Only perform reflection when the watched object changes
         if (lastWatchedTarget != currentTarget) {
@@ -62,7 +63,13 @@ public class ChatBetDebugPanel extends PluginPanel {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("=== ChatBet Live Debug ===\n\n");
+        if (hasActiveModule) {
+            sb.append("=== Active Module: ")
+              .append(plugin.getActiveTaskName())
+              .append(" ===\n\n");
+        } else {
+            sb.append("=== ChatBetPlugin (No Active Task) ===\n\n");
+        }
 
         for (Method m : cachedGetters) {
             try {
