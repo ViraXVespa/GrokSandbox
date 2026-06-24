@@ -28,7 +28,7 @@ public interface ChatBetConfig extends Config {
 	@ConfigItem(
 		keyName = "showDebugVars",
 		name = "Show Debug Vars",
-		description = "Log debug variables to console"
+		description = "Show variable/property values of the current module + plugin in a debug panel"
 	)
 	default boolean showDebugVars() {
 		return false;
