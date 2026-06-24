@@ -244,7 +244,7 @@ public class OuraniaAltarModule implements BetModule {
         if (finalIndex < 0 && !runeCraftCounts.isEmpty()) {
             String mostCrafted = runeCraftCounts.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey())
+                .map(Map.Entry::getKey)
                 .orElse(null);
 
             if (mostCrafted != null) {
