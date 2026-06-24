@@ -176,10 +176,6 @@ public class ChatBetPlugin extends Plugin {
             if (currentXp > 0) lastThievingXp = currentXp;
         }
 
-        if (config.showDebugVars()) {
-            log.info("[ChatBet Debug] ...");
-        }
-
         // Simple periodic poll of bridge for stream chat interop (expand in future commits)
         if (System.currentTimeMillis() % 5000 < 100) { // rough ~5s interval
             pollBridgeForNonCommandChat();
