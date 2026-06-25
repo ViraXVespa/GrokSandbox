@@ -532,9 +532,9 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public Map<String, Double> getOuraniaRuneOdds() {
         if (activeModule instanceof OuroniaAltarModule) {
-            OuraniaAltarModule ourania = (OuroniaAltarModule) activeModule;
+            OuroniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
-            return ourania.getRuneOdds(rcLevel, ourania.isWearingFullRaiments());
+            return ouronia.getRuneOdds(rcLevel, ouronia.isWearingFullRaiments());
         }
         return Map.of();
     }
@@ -582,8 +582,8 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     }
 
     /**
-     * Polls the StreamLabs bridge for active command requests.
-     * Now properly reads structured amount/option from active_request.
+     * Polls the StreamLabs bridge for active command requests and recent chat.
+     * Forwards non-command stream chat into game chat and logs structured bet requests.
      */
     private void pollBridgeForNonCommandChat() {
         try {
@@ -601,9 +601,8 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
                     log.info("[ChatBet Interop] Bridge state: " + body);
                 }
 
-                // Look for active_request with structured data
+                // 1. Handle structured active bet request
                 if (!body.contains("\"active_request\":null") && body.contains("\"active_request\":{")) {
-                    // Extract command
                     String command = extractJsonValue(body, "command");
                     String amountStr = extractJsonValue(body, "amount");
                     String option = extractJsonValue(body, "option");
@@ -612,7 +611,20 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
                         if (config.showDebugVars()) {
                             log.info("[ChatBet Interop] Stream bet request → Amount: " + amountStr + " | Option: " + option);
                         }
-                        // Future: we can auto-trigger handleBetCommand or store for overlay use
+                    }
+                }
+
+                // 2. Forward recent non-command, non-emoji chat messages
+                if (body.contains("\"recent_messages\":")) {
+                    int lastMsgStart = body.lastIndexOf("\"message\":\"");
+                    if (lastMsgStart > 0) {
+                        int msgEnd = body.indexOf("\"", lastMsgStart + 11);
+                        if (msgEnd > lastMsgStart) {
+                            String lastMessage = body.substring(lastMsgStart + 11, msgEnd);
+                            if (!lastMessage.startsWith("!") && !isProbablyEmojiOnly(lastMessage)) {
+                                sendStreamChatToGame("Stream", lastMessage);
+                            }
+                        }
                     }
                 }
             }
