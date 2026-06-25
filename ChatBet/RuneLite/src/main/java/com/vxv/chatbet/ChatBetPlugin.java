@@ -171,10 +171,84 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         }
     }
 
-    private void handleBetCommand(String username, String message) { /* TODO */ }
+    private void handleBetCommand(String username, String message) {
+        if (username == null || username.isBlank() || message == null) return;
+
+        // Parse: !bet <amount> on <option text>
+        String lower = message.toLowerCase();
+        if (!lower.startsWith("!bet ")) return;
+
+        String args = message.substring(5).trim();
+        int onIndex = lower.indexOf(" on ");
+        if (onIndex < 0) {
+            sendGameMessage("[ChatBet] Usage: !bet <amount> on <option>");
+            return;
+        }
+
+        String amountStr = args.substring(0, onIndex).trim();
+        String optionText = args.substring(onIndex + 4).trim();
+
+        long amount;
+        try {
+            amount = Long.parseLong(amountStr);
+        } catch (NumberFormatException e) {
+            sendGameMessage("[ChatBet] Invalid amount. Usage: !bet <amount> on <option>");
+            return;
+        }
+
+        if (amount <= 0) {
+            sendGameMessage("[ChatBet] Amount must be positive.");
+            return;
+        }
+
+        // Find the most relevant active poll (prefer last Ourania poll)
+        int pollId = lastOuraniaPollId;
+        Poll targetPoll = null;
+
+        if (pollId > 0) {
+            targetPoll = betManager.getPollById(pollId).orElse(null);
+        }
+
+        if (targetPoll == null || !targetPoll.isOpen()) {
+            // Fall back to first active poll
+            List<Poll> active = betManager.getActivePolls();
+            if (!active.isEmpty()) {
+                targetPoll = active.get(0);
+                pollId = targetPoll.getId();
+            }
+        }
+
+        if (targetPoll == null || !targetPoll.isOpen()) {
+            sendGameMessage("[ChatBet] No active bet to join right now.");
+            return;
+        }
+
+        // Find matching option index
+        int optionIndex = -1;
+        List<String> options = targetPoll.getOptions();
+        for (int i = 0; i < options.size(); i++) {
+            if (options.get(i).equalsIgnoreCase(optionText) ||
+                options.get(i).toLowerCase().contains(optionText.toLowerCase())) {
+                optionIndex = i;
+                break;
+            }
+        }
+
+        if (optionIndex < 0) {
+            sendGameMessage("[ChatBet] Option not found. Available: " + String.join(", ", options));
+            return;
+        }
+
+        boolean success = betManager.placeWager(username, pollId, optionIndex, amount);
+        if (success) {
+            sendGameMessage(String.format("[ChatBet] %s bet %d on %s!", username, amount, options.get(optionIndex)));
+        } else {
+            sendGameMessage("[ChatBet] Bet failed. Check your balance or try again.");
+        }
+    }
+
     private void handleChatBetCommand(String sender) { /* TODO */ }
     private void handleResolveCommand(String sender, String message) { /* TODO */ }
-    private void handleChatBetCommand(String sender) { /* TODO */ }
     private void handleBetsCommand() {
         List<Poll> activePolls = betManager.getActivePolls();
 
@@ -427,7 +501,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public Map<String, Double> getOuraniaRuneOdds() {
         if (activeModule instanceof OuroniaAltarModule) {
-            OuraniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
+            OuraniaAltarModule ourania = (OuroniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
             return ourania.getRuneOdds(rcLevel, ourania.isWearingFullRaiments());
         }
