@@ -261,7 +261,7 @@ public class OuraniaAltarModule implements BetModule {
             weights.put("Astral rune", 9.5 * multiplier);
             weights.put("Nature rune", 13.5 * multiplier);
             weights.put("Law rune", 14.5 * multiplier);
-            weights.put("Death rune", 15.5 * multiplier;
+            weights.put("Death rune", 15.5 * multiplier);
             weights.put("Blood rune", 13.0 * multiplier);
             weights.put("Soul rune", 9.0 * multiplier);
         } else if (rcLevel >= 90) {
