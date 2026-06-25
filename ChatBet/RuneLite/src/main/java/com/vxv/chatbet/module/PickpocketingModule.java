@@ -45,7 +45,6 @@ public class PickpocketingModule implements BetModule {
     @Override
     public void onGameTick(GameTick event) {
         log.debug("PickpocketingModule onGameTick");
-        // TODO: Animation-based attempt detection
     }
     @Override
     public void onStatChanged(StatChanged event) {
@@ -208,10 +207,10 @@ public class PickpocketingModule implements BetModule {
         vars.put("Dodgy Consumed", this::getDodgyConsumed);
         vars.put("Wine Consumed", this::getWineConsumed);
         vars.put("Dodgy Since Last ETC", this::getDodgySinceLastEtc);
-        vars.put("Wine Since Last ETC", this::getWineSinceLastEtc);
-        vars.put("Elves To Goal", this::getElvesToGoal);
+        vars.put("Wine Since Last ETC", this::getWineSinceLastEtc());
+        vars.put("Elves To Goal", this::getElvesToGoal());
         vars.put("Success Rate %", () -> String.format("%.1f", plugin.getSuccessRate()));
-        vars.put("XP to Goal", plugin::getXpToGoal);
+        vars.put("XP to Goal", plugin::getXpToGoal());
         if (plugin.getClient() != null) {
             vars.put("Thieving Level", () -> plugin.getClient().getRealSkillLevel(Skill.THIEVING));
         }
