@@ -54,18 +54,52 @@ def log_message(platform: str, user: str, message: str, timestamp: Optional[int]
 
 
 def parse_chat_command(message: str) -> Optional[dict]:
-    """Detect ChatBet commands (!bet, !odds, !chatbet, etc). Returns parsed info or None for regular chat."""
+    """Detect ChatBet commands. Returns structured data for betting."""
     if not message or not message.strip().startswith("!"):
         return None
+
     cleaned = message.strip()
+    lower = cleaned.lower()
+
+    # Handle bet / wager with "!bet <amount> on <option>" pattern
+    if lower.startswith("!bet ") or lower.startswith("!wager "):
+        # Remove the command prefix
+        rest = cleaned.split(maxsplit=1)[1] if " " in cleaned else ""
+        # Look for " on " pattern (case-insensitive)
+        if " on " in rest.lower():
+            parts = rest.split(" on ", 1)
+            amount_str = parts[0].strip()
+            option = parts[1].strip() if len(parts) > 1 else ""
+
+            try:
+                amount = int(amount_str)
+            except ValueError:
+                amount = None
+
+            return {
+                "command": "bet",
+                "amount": amount,
+                "option": option,
+                "raw": cleaned
+            }
+        else:
+            # Fallback for malformed bet command
+            return {
+                "command": "bet",
+                "amount": None,
+                "option": None,
+                "raw": cleaned
+            }
+
+    # Other commands (odds, chatbet, etc.)
     parts = cleaned[1:].split(maxsplit=3)
     if not parts:
         return None
+
     cmd = parts[0].lower()
-    if cmd in ("bet", "wager"):
-        cmd = "bet"
-    elif cmd in ("prob", "odds", "chance", "calculate"):
+    if cmd in ("prob", "odds", "chance", "calculate"):
         cmd = "odds"
+
     return {
         "command": cmd,
         "args": parts[1:] if len(parts) > 1 else [],
@@ -98,9 +132,9 @@ async def ingest_get(
     parsed = parse_chat_command(message)
     if parsed:
         global active_request
-        active_request = {"user": user, "command": parsed["command"], "args": parsed["args"], "timestamp": ts, "raw_message": parsed["raw"]}
+        active_request = {"user": user, "command": parsed["command"], "args": parsed.get("args"), "amount": parsed.get("amount"), "option": parsed.get("option"), "timestamp": ts, "raw_message": parsed["raw"]}
         if DEBUG:
-            print(f"  → Parsed command: !{parsed['command']} {parsed['args']}")
+            print(f"  → Parsed command: !{parsed['command']} {parsed.get('args') or parsed.get('option') or ''}")
     return {"status": "received", "is_command": parsed is not None}
 
 
@@ -114,9 +148,9 @@ async def ingest_post(msg: ChatMessage):
     parsed = parse_chat_command(msg.message)
     if parsed:
         global active_request
-        active_request = {"user": msg.user, "command": parsed["command"], "args": parsed["args"], "timestamp": ts, "raw_message": parsed["raw"]}
+        active_request = {"user": msg.user, "command": parsed["command"], "args": parsed.get("args"), "amount": parsed.get("amount"), "option": parsed.get("option"), "timestamp": ts, "raw_message": parsed["raw"]}
         if DEBUG:
-            print(f"  → Parsed command: !{parsed['command']} {parsed['args']}")
+            print(f"  → Parsed command: !{parsed['command']} {parsed.get('args') or parsed.get('option') or ''}")
     return {"status": "received", "is_command": parsed is not None}
 
 
@@ -147,7 +181,7 @@ if __name__ == "__main__":
     print(f"URL: http://127.0.0.1:{args.port}")
     print(f"Debug mode: {'ENABLED' if DEBUG else 'disabled'}")
     if DEBUG:
-        print(→ Messages will appear in clean format: [platform]HH:MM:SS - user - message")
+        print("→ Messages will appear in clean format: [platform]HH:MM:SS - user - message")
     print(f"{'='*60}\n")
 
     uvicorn.run(
