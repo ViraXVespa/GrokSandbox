@@ -483,7 +483,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         } else {
             if (activeModule == null) {
                 if ("Ourania Altar Runes".equals(task)) {
-                    activeModule = new OuraniaAltarModule(this);
+                    activeModule = new OuroniaAltarModule(this);
             } else {
                     activeModule = new PickpocketingModule(this);
                 }
@@ -582,8 +582,8 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     }
 
     /**
-     * Polls the StreamLabs bridge for active commands and recent chat.
-     * Extracts real messages from recent_messages, skips emojis/commands, forwards via sendStreamChatToGame.
+     * Polls the StreamLabs bridge for active command requests.
+     * Now properly reads structured amount/option from active_request.
      */
     private void pollBridgeForNonCommandChat() {
         try {
@@ -601,17 +601,18 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
                     log.info("[ChatBet Interop] Bridge state: " + body);
                 }
 
-                if (body.contains("\"active_request\":null")) {
-                    // Try to extract a simple message from recent_messages (demo parsing)
-                    int start = body.indexOf("message\":\"");
-                    if (start > 0) {
-                        int end = body.indexOf("\"", start + 10);
-                        if (end > start) {
-                            String extractedMsg = body.substring(start + 10, end);
-                            if (!isProbablyEmojiOnly(extractedMsg)) {
-                                sendStreamChatToGame("Stream", extractedMsg);
-                            }
+                // Look for active_request with structured data
+                if (!body.contains("\"active_request\":null") && body.contains("\"active_request\":{")) {
+                    // Extract command
+                    String command = extractJsonValue(body, "command");
+                    String amountStr = extractJsonValue(body, "amount");
+                    String option = extractJsonValue(body, "option");
+
+                    if ("bet".equalsIgnoreCase(command) && amountStr != null && option != null) {
+                        if (config.showDebugVars()) {
+                            log.info("[ChatBet Interop] Stream bet request → Amount: " + amountStr + " | Option: " + option);
                         }
+                        // Future: we can auto-trigger handleBetCommand or store for overlay use
                     }
                 }
             }
@@ -620,6 +621,23 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
                 log.debug("Bridge poll failed (normal if bridge not running): " + e.getMessage());
             }
         }
+    }
+
+    /** Simple helper to extract a top-level string value from JSON (no external parser needed) */
+    private String extractJsonValue(String json, String key) {
+        String search = "\"" + key + "\":";
+        int start = json.indexOf(search);
+        if (start < 0) return null;
+
+        start += search.length();
+        // Skip whitespace and possible quote
+        while (start < json.length() && (json.charAt(start) == ' ' || json.charAt(start) == '"')) start++;
+
+        int end = start;
+        while (end < json.length() && json.charAt(end) != ',' && json.charAt(end) != '}' && json.charAt(end) != '"') {
+            end++;
+        }
+        return json.substring(start, end).trim().replace("\"", "");
     }
 
     // === DebugInfoProvider implementation ===
