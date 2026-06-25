@@ -527,14 +527,14 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     }
 
     public boolean isOuraniaBettingLocked() {
-        if (activeModule instanceof OuraniaAltarModule) {
+        if (activeModule instanceof OuroniaAltarModule) {
             return ((OuroniaAltarModule) activeModule).isBettingLocked();
         }
         return false;
     }
 
     public boolean isWearingFullRaiments() {
-        if (activeModule instanceof OuraniaAltarModule) {
+        if (activeModule instanceof OuroniaAltarModule) {
             return ((OuroniaAltarModule) activeModule).isWearingFullRaiments();
         }
         return false;
@@ -542,7 +542,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public Map<String, Double> getOuraniaRuneOdds() {
         if (activeModule instanceof OuroniaAltarModule) {
-            OuraniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
+            OuroniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
             return ouronia.getRuneOdds(rcLevel, ouronia.isWearingFullRaiments());
         }
@@ -574,7 +574,8 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
                     .type(ChatMessageType.GAMEMESSAGE)
                     .value(text)
                     .build()
-            )
+                )
+            );
         );
     }
 
@@ -708,8 +709,8 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     @Override
     public Map<String, Supplier<Object>> getDebugVariables() {
         Map<String, Supplier<Object>> vars = new LinkedHashMap<>();
-        vars.put("Active Task", this::getActiveTaskName());
-        vars.put("Current Goal %", this::getCurrentGoalPercentage());
+        vars.put("Active Task", this::getActiveTaskName);
+        vars.put("Current Goal %", this::getCurrentGoalPercentage);
         vars.put("Debug Mode Enabled", () -> config.showDebugVars());
         vars.put("Active Module Present", () -> activeModule != null);
         vars.put("Last Ourania Poll ID", () -> lastOuraniaPollId);
