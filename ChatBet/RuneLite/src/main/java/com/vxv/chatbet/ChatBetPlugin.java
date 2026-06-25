@@ -306,7 +306,14 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
         return elvesToGoal * successRate;
     }
-    public double getProbEtcFromSuccesses() { return 0.0; } // TODO
+    public double getProbEtcFromSuccesses() {
+        int successes = getSuccessesSinceLastEtc();
+        int attempts = getAttemptsSinceLastEtc();
+
+        if (attempts <= 0) return 0.0;
+
+        return (successes * 100.0) / attempts;
+    }
     public List<Map.Entry<String, Long>> getTopBalances(int limit) { return List.of(); } // TODO from betManager
     public List<String> getRecentBalanceRequests() { return List.of(); } // TODO
     public long getBalance(String user) { return betManager.getBalance(user); }
@@ -355,21 +362,21 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public boolean isOuraniaBettingLocked() {
         if (activeModule instanceof OuraniaAltarModule) {
-            return ((OuraniaAltarModule) activeModule).isBettingLocked();
+            return ((OuroniaAltarModule) activeModule).isBettingLocked();
         }
         return false;
     }
 
     public boolean isWearingFullRaiments() {
-        if (activeModule instanceof OuraniaAltarModule) {
-            return ((OuraniaAltarModule) activeModule).isWearingFullRaiments();
+        if (activeModule instanceof OuroniaAltarModule) {
+            return ((OuroniaAltarModule) activeModule).isWearingFullRaiments();
         }
         return false;
     }
 
     public Map<String, Double> getOuraniaRuneOdds() {
-        if (activeModule instanceof OuraniaAltarModule) {
-            OuraniaAltarModule ourania = (OuraniaAltarModule) activeModule;
+        if (activeModule instanceof OuroniaAltarModule) {
+            OuraniaAltarModule ourania = (OuroniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
             return ourania.getRuneOdds(rcLevel, ourania.isWearingFullRaiments());
         }
