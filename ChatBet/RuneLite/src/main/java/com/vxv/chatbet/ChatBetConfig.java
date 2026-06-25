@@ -49,4 +49,24 @@ public interface ChatBetConfig extends Config {
 		description = "Currently selected betting task"
 	)
 	void selectedTask(String selectedTask);
+
+	// === Python Bridge Configuration ===
+
+	@ConfigItem(
+		keyName = "pythonExecutable",
+		name = "Python Executable",
+		description = "Path to Python executable (e.g. python, python3, or full path to python.exe)"
+	)
+	default String pythonExecutable() {
+		return "python";
+	}
+
+	@ConfigItem(
+		keyName = "pythonBridgeScriptPath",
+		name = "Python Bridge Script Path",
+		description = "Full path to stream_bet_bridge.py (e.g. C:\\path\\to\\stream_bet_bridge.py)"
+	)
+	default String pythonBridgeScriptPath() {
+		return "";
+	}
 }
