@@ -303,14 +303,14 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     private void sendGameMessage(String text) {
         if (chatMessageManager != null && clientThread != null) {
-            clientThread.invokeLater(() ->
+            clientThread.invokeLater(() -> {
                 chatMessageManager.queue(
                     QueuedMessage.builder()
                         .type(ChatMessageType.GAMEMESSAGE)
                         .value(text)
                         .build()
-                )
-            );
+                );
+            });
         } else {
             log.info(text);
         }
@@ -323,14 +323,14 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         String response = String.format("[ChatBet] %s, your current balance is %d coins.", sender, balance);
 
         if (chatMessageManager != null && clientThread != null) {
-            clientThread.invokeLater(() ->
+            clientThread.invokeLater(() -> {
                 chatMessageManager.queue(
                     QueuedMessage.builder()
                         .type(ChatMessageType.GAMEMESSAGE)
                         .value(response)
                         .build()
-                )
-            );
+                );
+            });
         } else {
             log.info("[ChatBet] Balance response for {}: {}", sender, balance);
         }
@@ -568,15 +568,14 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     private void sendStreamChatToGame(String user, String message) {
         if (chatMessageManager == null || clientThread == null || message == null || message.isBlank()) return;
         String text = (user != null && !user.isBlank()) ? "[" + user + "] " + message : message;
-        clientThread.invokeLater(() ->
+        clientThread.invokeLater(() -> {
             chatMessageManager.queue(
                 QueuedMessage.builder()
                     .type(ChatMessageType.GAMEMESSAGE)
                     .value(text)
                     .build()
-                )
             );
-        );
+        });
     }
 
     private boolean isProbablyEmojiOnly(String msg) {
