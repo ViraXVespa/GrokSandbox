@@ -2,7 +2,7 @@ package com.vxv.chatbet;
 
 import com.google.inject.Provides;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.*;
 import net.runelite.client.config.ConfigManager;
@@ -634,7 +634,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public List<String> getCurrentRuneOptions() {
         if (activeModule instanceof OuraniaAltarModule) {
-            return ((OuraniaAltarModule) activeModule).getCurrentRuneOptions();
+            return ((OuroniaAltarModule) activeModule).getCurrentRuneOptions();
         }
         return List.of();
     }
