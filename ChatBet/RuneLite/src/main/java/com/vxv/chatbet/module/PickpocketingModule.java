@@ -61,10 +61,53 @@ public class PickpocketingModule implements BetModule {
         updateItemTracking(event);
     }
     private void updateItemTracking(ItemContainerChanged event) {
-        // Full delta logic for ETC, dodgy, wine moved here
-        log.debug("Item container changed - tracking update triggered in PickpocketingModule");
-        // TODO: Implement checkDelta / inventory comparison
+        ItemContainer container = event.getItemContainer();
+        if (container == null) return;
+
+        Map<Integer, Integer> currentQtys = new HashMap<>();
+        for (var item : container.getItems()) {
+            if (item.getId() > 0) {
+                currentQtys.merge(item.getId(), item.getQuantity(), Integer::sum);
+            }
+        }
+
+        // Calculate deltas for key items
+        int etcDelta = calculateDelta(lastInventoryQtys, currentQtys, ITEM_ETC);
+        int dodgyDelta = calculateDelta(lastInventoryQtys, currentQtys, ITEM_DODGY_NECKLACE);
+        int wineDelta = calculateDelta(lastInventoryQtys, currentQtys, ITEM_JUG_OF_WINE);
+
+        if (etcDelta > 0) {
+            etcsObtained.addAndGet(etcDelta);
+            // Reset "since last ETC" counters when obtaining a new one
+            attemptsSinceLastEtc.set(0);
+            successesSinceLastEtc.set(0);
+            dodgySinceLastEtc.set(0);
+            wineSinceLastEtc.set(0);
+        }
+
+        if (dodgyDelta < 0) {
+            int consumed = -dodgyDelta;
+            dodgyConsumed.addAndGet(consumed);
+            dodgySinceLastEtc.addAndGet(consumed);
+        }
+
+        if (wineDelta < 0) {
+            int consumed = -wineDelta;
+            wineConsumed.addAndGet(consumed);
+            wineSinceLastEtc.addAndGet(consumed);
+        }
+
+        // Update last known state
+        lastInventoryQtys.clear();
+        lastInventoryQtys.putAll(currentQtys);
     }
+
+    private int calculateDelta(Map<Integer, Integer> previous, Map<Integer, Integer> current, int itemId) {
+        int prev = previous.getOrDefault(itemId, 0);
+        int now = current.getOrDefault(itemId, 0);
+        return now - prev;
+    }
+
     @Override
     public void onChatMessage(ChatMessage event) {
         String msg = event.getMessage();
@@ -201,7 +244,7 @@ public class PickpocketingModule implements BetModule {
     public Map<String, Supplier<Object>> getDebugVariables() {
         Map<String, Supplier<Object>> vars = new LinkedHashMap<>();
         vars.put("ETCs Obtained", this::getEtcsObtained);
-        vars.put("Attempts Since Last ETC", this::getAttemptsSinceLastEtc);
+        vars.put("Attempts Since Last ETC", this::getAttemptsSinceLastEtc());
         vars.put("Successes Since Last ETC", this::getSuccessesSinceLastEtc());
         vars.put("Dodgy Consumed", this::getDodgyConsumed());
         vars.put("Wine Consumed", this::getWineConsumed());
