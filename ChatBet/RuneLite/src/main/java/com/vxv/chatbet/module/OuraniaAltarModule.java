@@ -75,7 +75,6 @@ public class OuraniaAltarModule implements BetModule {
 
     @Override
     public void onStatChanged(StatChanged event) {
-        // TODO: Runecraft level changes if needed for odds
     }
 
     @Override
@@ -262,7 +261,7 @@ public class OuraniaAltarModule implements BetModule {
             weights.put("Astral rune", 9.5 * multiplier);
             weights.put("Nature rune", 13.5 * multiplier);
             weights.put("Law rune", 14.5 * multiplier);
-            weights.put("Death rune", 15.5 * multiplier);
+            weights.put("Death rune", 15.5 * multiplier;
             weights.put("Blood rune", 13.0 * multiplier);
             weights.put("Soul rune", 9.0 * multiplier);
         } else if (rcLevel >= 90) {
@@ -554,8 +553,8 @@ public class OuraniaAltarModule implements BetModule {
         vars.put("Run Active", () -> runActive);
         vars.put("Essence Carried", this::getTotalEssenceCarried);
         vars.put("Rune Options Count", () -> currentRuneOptions.size());
-        vars.put("Betting Locked", this::isBettingLocked);
-        vars.put("Wearing Full Raiments", this::isWearingFullRaiments);
+        vars.put("Betting Locked", this::isBettingLocked());
+        vars.put("Wearing Full Raiments", this::isWearingFullRaiments());
         vars.put("First Rune Crafted", () -> firstRuneCrafted);
         vars.put("Waiting For Essence After Bank", () -> waitingForEssenceAfterBank);
         if (plugin.getClient() != null) {
