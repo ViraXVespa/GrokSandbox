@@ -295,7 +295,17 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
         return elvesToGoal * successRate;
     }
-    public double getExpectedEtcs() { return 0.0; } // TODO
+    public double getExpectedEtcs() {
+        long elvesToGoal = getElvesToGoal();
+        if (elvesToGoal <= 0) return 0.0;
+
+        double successRate = getSuccessRate() / 100.0;
+        if (successRate <= 0) {
+            successRate = 0; // default to zero if no data yet
+        }
+
+        return elvesToGoal * successRate;
+    }
     public double getProbEtcFromSuccesses() { return 0.0; } // TODO
     public List<Map.Entry<String, Long>> getTopBalances(int limit) { return List.of(); } // TODO from betManager
     public List<String> getRecentBalanceRequests() { return List.of(); } // TODO
@@ -453,7 +463,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     @Override
     public Map<String, Supplier<Object>> getDebugVariables() {
         Map<String, Supplier<Object>> vars = new LinkedHashMap<>();
-        vars.put("Active Task", this::getActiveTaskName);
+        vars.put("Active Task", this::getActiveTaskName());
         vars.put("Current Goal %", this::getCurrentGoalPercentage());
         vars.put("Debug Mode Enabled", () -> config.showDebugVars());
         vars.put("Active Module Present", () -> activeModule != null);
