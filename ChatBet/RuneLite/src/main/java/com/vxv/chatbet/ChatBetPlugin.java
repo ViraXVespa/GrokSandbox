@@ -174,7 +174,6 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     private void handleBetCommand(String username, String message) {
         if (username == null || username.isBlank() || message == null) return;
 
-        // Parse: !bet <amount> on <option text>
         String lower = message.toLowerCase();
         if (!lower.startsWith("!bet ")) return;
 
@@ -201,7 +200,18 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
             return;
         }
 
-        // Find the most relevant active poll (prefer last Ourania poll)
+        placeBet(username, amount, optionText);
+    }
+
+    /**
+     * Core bet placement logic used by both in-game !bet commands and automatic bridge requests.
+     */
+    private void placeBet(String username, long amount, String optionText) {
+        if (username == null || username.isBlank() || optionText == null || optionText.isBlank()) {
+            sendGameMessage("[ChatBet] Invalid bet request.");
+            return;
+        }
+
         int pollId = lastOuraniaPollId;
         Poll targetPoll = null;
 
@@ -210,7 +220,6 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         }
 
         if (targetPoll == null || !targetPoll.isOpen()) {
-            // Fall back to first active poll
             List<Poll> active = betManager.getActivePolls();
             if (!active.isEmpty()) {
                 targetPoll = active.get(0);
@@ -223,7 +232,6 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
             return;
         }
 
-        // Find matching option index
         int optionIndex = -1;
         List<String> options = targetPoll.getOptions();
         for (int i = 0; i < options.size(); i++) {
@@ -314,7 +322,6 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         long balance = betManager.getBalance(sender);
         String response = String.format("[ChatBet] %s, your current balance is %d coins.", sender, balance);
 
-        // Send response into game chat (reuses existing pattern)
         if (chatMessageManager != null && clientThread != null) {
             clientThread.invokeLater(() ->
                 chatMessageManager.queue(
@@ -350,8 +357,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
             chatBetDebugPanel.refreshDebugInfo();
         }
 
-        // Simple periodic poll of bridge for stream chat interop (expand in future commits)
-        if (System.currentTimeMillis() % 5000 < 100) { // rough ~5s interval
+        if (System.currentTimeMillis() % 5000 < 100) {
             pollBridgeForNonCommandChat();
         }
     }
@@ -385,7 +391,6 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         return 0;
     }
 
-    // Delegation for PickpocketingModule getters (kept for compatibility)
     public int getEtcsObtained() {
         if (activeModule instanceof PickpocketingModule) {
             return ((PickpocketingModule) activeModule).getEtcsObtained();
@@ -435,7 +440,6 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         return 0;
     }
 
-    // Stubs for remaining missing methods in Overlay
     public double getEstimatedEtcsToGoal() {
         long elvesToGoal = getElvesToGoal();
         if (elvesToGoal <= 0) return 0.0;
@@ -447,6 +451,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
         return elvesToGoal * successRate;
     }
+
     public double getExpectedEtcs() {
         long elvesToGoal = getElvesToGoal();
         if (elvesToGoal <= 0) return 0.0;
@@ -458,6 +463,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
         return elvesToGoal * successRate;
     }
+
     public double getProbEtcFromSuccesses() {
         int successes = getSuccessesSinceLastEtc();
         int attempts = getAttemptsSinceLastEtc();
@@ -466,12 +472,15 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
         return (successes * 100.0) / attempts;
     }
+
     public List<Map.Entry<String, Long>> getTopBalances(int limit) {
         return betManager.getTopBalances(limit);
     }
+
     public List<String> getRecentBalanceRequests() {
         return betManager.getRecentBalanceRequests();
     }
+
     public long getBalance(String user) { return betManager.getBalance(user); }
 
     public void setActiveTask(String task, int goalPercentage) {
@@ -483,8 +492,8 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         } else {
             if (activeModule == null) {
                 if ("Ourania Altar Runes".equals(task)) {
-                    activeModule = new OuroniaAltarModule(this);
-            } else {
+                    activeModule = new OuraniaAltarModule(this);
+                } else {
                     activeModule = new PickpocketingModule(this);
                 }
             }
@@ -493,6 +502,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     }
 
     public double getSuccessRate() { return successes.get() > 0 ? (successes.get() * 100.0 / attempts.get()) : 0.0; }
+
     public int getCurrentGoalPercentage() { return currentGoalPercentage; }
 
     public List<Poll> getActivePolls() { return betManager.getActivePolls(); }
@@ -506,25 +516,25 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     public BetModule getActiveModule() { return activeModule; }
 
     public AtomicInteger getAttempts() { return attempts; }
+
     public AtomicInteger getSuccesses() { return successes; }
 
-    // Delegation for OuraniaAltarModule
     public List<String> getCurrentRuneOptions() {
         if (activeModule instanceof OuraniaAltarModule) {
-            return ((OuroniaAltarModule) activeModule).getCurrentRuneOptions();
+            return ((OuraniaAltarModule) activeModule).getCurrentRuneOptions();
         }
         return List.of();
     }
 
     public boolean isOuraniaBettingLocked() {
-        if (activeModule instanceof OuroniaAltarModule) {
-            return ((OuroniaAltarModule) activeModule).isBettingLocked();
+        if (activeModule instanceof OuraniaAltarModule) {
+            return ((OuraniaAltarModule) activeModule).isBettingLocked();
         }
         return false;
     }
 
     public boolean isWearingFullRaiments() {
-        if (activeModule instanceof OuroniaAltarModule) {
+        if (activeModule instanceof OuraniaAltarModule) {
             return ((OuroniaAltarModule) activeModule).isWearingFullRaiments();
         }
         return false;
@@ -532,7 +542,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public Map<String, Double> getOuraniaRuneOdds() {
         if (activeModule instanceof OuroniaAltarModule) {
-            OuroniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
+            OuraniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
             return ouronia.getRuneOdds(rcLevel, ouronia.isWearingFullRaiments());
         }
@@ -555,11 +565,6 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         }
     }
 
-    /**
-     * Sends a message from stream chat (non-command, non-emoji) directly into the RuneLite game chat.
-     * Must be called from a background thread;
-     * uses clientThread for safety.
-     */
     private void sendStreamChatToGame(String user, String message) {
         if (chatMessageManager == null || clientThread == null || message == null || message.isBlank()) return;
         String text = (user != null && !user.isBlank()) ? "[" + user + "] " + message : message;
@@ -573,18 +578,12 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         );
     }
 
-    /** Basic emoji/symbol filter for stream chat (non-emoji messages get forwarded) */
     private boolean isProbablyEmojiOnly(String msg) {
         if (msg == null || msg.isBlank()) return true;
-        // Remove common emoji/symbol ranges and punctuation
         String cleaned = msg.replaceAll("[\\p{So}\\p{Cn}\\p{Cs}\\s:;,.!?()\\[\\]{}'\"-]+", "");
-        return cleaned.length() < 2; // mostly symbols/emojis
+        return cleaned.length() < 2;
     }
 
-    /**
-     * Polls the StreamLabs bridge for active command requests and recent chat.
-     * Forwards non-command stream chat into game chat and logs structured bet requests.
-     */
     private void pollBridgeForNonCommandChat() {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -601,20 +600,24 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
                     log.info("[ChatBet Interop] Bridge state: " + body);
                 }
 
-                // 1. Handle structured active bet request
                 if (!body.contains("\"active_request\":null") && body.contains("\"active_request\":{")) {
                     String command = extractJsonValue(body, "command");
                     String amountStr = extractJsonValue(body, "amount");
                     String option = extractJsonValue(body, "option");
 
                     if ("bet".equalsIgnoreCase(command) && amountStr != null && option != null) {
-                        if (config.showDebugVars()) {
-                            log.info("[ChatBet Interop] Stream bet request → Amount: " + amountStr + " | Option: " + option);
+                        try {
+                            long amount = Long.parseLong(amountStr);
+                            if (amount > 0) {
+                                // Auto-place bet from stream chat
+                                placeBet("Stream", amount, option);
+                            }
+                        } catch (NumberFormatException ignored) {
+                            // Invalid amount from bridge - ignore
                         }
                     }
                 }
 
-                // 2. Forward recent non-command, non-emoji chat messages
                 if (body.contains("\"recent_messages\":")) {
                     int lastMsgStart = body.lastIndexOf("\"message\":\"");
                     if (lastMsgStart > 0) {
@@ -635,14 +638,12 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         }
     }
 
-    /** Simple helper to extract a top-level string value from JSON (no external parser needed) */
     private String extractJsonValue(String json, String key) {
         String search = "\"" + key + "\":";
         int start = json.indexOf(search);
         if (start < 0) return null;
 
         start += search.length();
-        // Skip whitespace and possible quote
         while (start < json.length() && (json.charAt(start) == ' ' || json.charAt(start) == '"')) start++;
 
         int end = start;
@@ -652,7 +653,6 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         return json.substring(start, end).trim().replace("\"", "");
     }
 
-    // === DebugInfoProvider implementation ===
     @Override
     public Map<String, Supplier<Object>> getDebugVariables() {
         Map<String, Supplier<Object>> vars = new LinkedHashMap<>();
