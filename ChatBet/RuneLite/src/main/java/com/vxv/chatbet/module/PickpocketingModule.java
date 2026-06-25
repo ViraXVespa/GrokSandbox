@@ -244,15 +244,15 @@ public class PickpocketingModule implements BetModule {
     public Map<String, Supplier<Object>> getDebugVariables() {
         Map<String, Supplier<Object>> vars = new LinkedHashMap<>();
         vars.put("ETCs Obtained", this::getEtcsObtained);
-        vars.put("Attempts Since Last ETC", this::getAttemptsSinceLastEtc());
-        vars.put("Successes Since Last ETC", this::getSuccessesSinceLastEtc());
-        vars.put("Dodgy Consumed", this::getDodgyConsumed());
-        vars.put("Wine Consumed", this::getWineConsumed());
-        vars.put("Dodgy Since Last ETC", this::getDodgySinceLastEtc());
-        vars.put("Wine Since Last ETC", this::getWineSinceLastEtc());
-        vars.put("Elves To Goal", this::getElvesToGoal());
+        vars.put("Attempts Since Last ETC", this::getAttemptsSinceLastEtc);
+        vars.put("Successes Since Last ETC", this::getSuccessesSinceLastEtc);
+        vars.put("Dodgy Consumed", this::getDodgyConsumed);
+        vars.put("Wine Consumed", this::getWineConsumed);
+        vars.put("Dodgy Since Last ETC", this::getDodgySinceLastEtc);
+        vars.put("Wine Since Last ETC", this::getWineSinceLastEtc);
+        vars.put("Elves To Goal", this::getElvesToGoal);
         vars.put("Success Rate %", () -> String.format("%.1f", plugin.getSuccessRate()));
-        vars.put("XP to Goal", plugin::getXpToGoal());
+        vars.put("XP to Goal", plugin::getXpToGoal);
         if (plugin.getClient() != null) {
             vars.put("Thieving Level", () -> plugin.getClient().getRealSkillLevel(Skill.THIEVING));
         }
