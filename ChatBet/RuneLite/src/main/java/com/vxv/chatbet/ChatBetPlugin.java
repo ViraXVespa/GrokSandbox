@@ -2,7 +2,7 @@ package com.vxv.chatbet;
 
 import com.google.inject.Provides;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.Slf4j
 import net.runelite.api.*;
 import net.runelite.api.events.*;
 import net.runelite.client.config.ConfigManager;
@@ -176,11 +176,15 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
             return;
         }
 
-        try {
-            // TODO: Make these configurable in a follow-up commit
-            String pythonExe = "python"; // assumes python is on PATH
-            String scriptPath = "C:/Users/Vince/source/repos/GrokSandbox/ChatBet/StreamLabs/stream_bet_bridge.py";
+        String pythonExe = config.pythonExecutable();
+        String scriptPath = config.pythonBridgeScriptPath();
 
+        if (scriptPath == null || scriptPath.isBlank()) {
+            log.warn("[Bridge] Python bridge script path is not configured (see plugin settings). Skipping auto-start.");
+            return;
+        }
+
+        try {
             List<String> command = new ArrayList<>();
             command.add(pythonExe);
             command.add(scriptPath);
@@ -637,7 +641,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public boolean isOuraniaBettingLocked() {
         if (activeModule instanceof OuraniaAltarModule) {
-            return ((OuraniaAltarModule) activeModule).isBettingLocked();
+            return ((OuroniaAltarModule) activeModule).isBettingLocked();
         }
         return false;
     }
@@ -683,7 +687,8 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
                     .type(ChatMessageType.GAMEMESSAGE)
                     .value(text)
                     .build()
-            );
+                );
+            });
         });
     }
 
