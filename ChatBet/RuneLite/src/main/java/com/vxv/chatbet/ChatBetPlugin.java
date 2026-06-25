@@ -175,7 +175,26 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     private void handleChatBetCommand(String sender) { /* TODO */ }
     private void handleBetsCommand() { /* TODO */ }
     private void handleResolveCommand(String sender, String message) { /* TODO */ }
-    private void handleBalanceCommand(String sender) { /* TODO */ }
+    private void handleBalanceCommand(String sender) {
+        if (sender == null || sender.isBlank()) return;
+
+        long balance = betManager.getBalance(sender);
+        String response = String.format("[ChatBet] %s, your current balance is %d coins.", sender, balance);
+
+        // Send response into game chat (reuses existing pattern)
+        if (chatMessageManager != null && clientThread != null) {
+            clientThread.invokeLater(() ->
+                chatMessageManager.queue(
+                    QueuedMessage.builder()
+                        .type(ChatMessageType.GAMEMESSAGE)
+                        .value(response)
+                        .build()
+                )
+            );
+        } else {
+            log.info("[ChatBet] Balance response for {}: {}", sender, balance);
+        }
+    }
 
     @Subscribe
     public void onStatChanged(StatChanged event) {
@@ -355,13 +374,13 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     // Delegation for OuraniaAltarModule
     public List<String> getCurrentRuneOptions() {
         if (activeModule instanceof OuraniaAltarModule) {
-            return ((OuraniaAltarModule) activeModule).getCurrentRuneOptions();
+            return ((OuroniaAltarModule) activeModule).getCurrentRuneOptions();
         }
         return List.of();
     }
 
     public boolean isOuraniaBettingLocked() {
-        if (activeModule instanceof OuraniaAltarModule) {
+        if (activeModule instanceof OuroniaAltarModule) {
             return ((OuroniaAltarModule) activeModule).isBettingLocked();
         }
         return false;
