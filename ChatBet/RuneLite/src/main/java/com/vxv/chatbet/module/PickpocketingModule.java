@@ -51,7 +51,6 @@ public class PickpocketingModule implements BetModule {
         if (event.getSkill() == Skill.THIEVING) {
             log.debug("Thieving XP changed - potential success");
             // Removed duplicate increment - chat message is authoritative for successes
-            // TODO: Full logic for attempt vs success distinction (e.g., via animation or item drops)
         }
     }
     @Override
@@ -203,10 +202,10 @@ public class PickpocketingModule implements BetModule {
         Map<String, Supplier<Object>> vars = new LinkedHashMap<>();
         vars.put("ETCs Obtained", this::getEtcsObtained);
         vars.put("Attempts Since Last ETC", this::getAttemptsSinceLastEtc);
-        vars.put("Successes Since Last ETC", this::getSuccessesSinceLastEtc);
-        vars.put("Dodgy Consumed", this::getDodgyConsumed);
-        vars.put("Wine Consumed", this::getWineConsumed);
-        vars.put("Dodgy Since Last ETC", this::getDodgySinceLastEtc);
+        vars.put("Successes Since Last ETC", this::getSuccessesSinceLastEtc());
+        vars.put("Dodgy Consumed", this::getDodgyConsumed());
+        vars.put("Wine Consumed", this::getWineConsumed());
+        vars.put("Dodgy Since Last ETC", this::getDodgySinceLastEtc());
         vars.put("Wine Since Last ETC", this::getWineSinceLastEtc());
         vars.put("Elves To Goal", this::getElvesToGoal());
         vars.put("Success Rate %", () -> String.format("%.1f", plugin.getSuccessRate()));
