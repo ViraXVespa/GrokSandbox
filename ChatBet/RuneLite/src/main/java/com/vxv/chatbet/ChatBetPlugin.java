@@ -466,8 +466,12 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
         return (successes * 100.0) / attempts;
     }
-    public List<Map.Entry<String, Long>> getTopBalances(int limit) { return List.of(); } // TODO from betManager
-    public List<String> getRecentBalanceRequests() { return List.of(); } // TODO
+    public List<Map.Entry<String, Long>> getTopBalances(int limit) {
+        return betManager.getTopBalances(limit);
+    }
+    public List<String> getRecentBalanceRequests() {
+        return betManager.getRecentBalanceRequests();
+    }
     public long getBalance(String user) { return betManager.getBalance(user); }
 
     public void setActiveTask(String task, int goalPercentage) {
@@ -506,7 +510,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     // Delegation for OuraniaAltarModule
     public List<String> getCurrentRuneOptions() {
-        if (activeModule instanceof OuroniaAltarModule) {
+        if (activeModule instanceof OuraniaAltarModule) {
             return ((OuroniaAltarModule) activeModule).getCurrentRuneOptions();
         }
         return List.of();
@@ -528,7 +532,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public Map<String, Double> getOuraniaRuneOdds() {
         if (activeModule instanceof OuroniaAltarModule) {
-            OuroniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
+            OuraniaAltarModule ourania = (OuroniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
             return ourania.getRuneOdds(rcLevel, ourania.isWearingFullRaiments());
         }
