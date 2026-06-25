@@ -528,7 +528,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public boolean isOuraniaBettingLocked() {
         if (activeModule instanceof OuraniaAltarModule) {
-            return ((OuraniaAltarModule) activeModule).isBettingLocked();
+            return ((OuroniaAltarModule) activeModule).isBettingLocked();
         }
         return false;
     }
@@ -600,24 +600,26 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
                     log.info("[ChatBet Interop] Bridge state: " + body);
                 }
 
-                if (!body.contains("\"active_request\":null") && body.contains("\"active_request\":{")) {
-                    String command = extractJsonValue(body, "command");
-                    String amountStr = extractJsonValue(body, "amount");
-                    String option = extractJsonValue(body, "option");
+                // Improved parsing for active_request
+                String activeRequestJson = extractObject(body, "active_request");
+                if (activeRequestJson != null && !activeRequestJson.equals("null")) {
+                    String command = extractJsonStringValue(activeRequestJson, "command");
+                    String amountStr = extractJsonStringValue(activeRequestJson, "amount");
+                    String option = extractJsonStringValue(activeRequestJson, "option");
 
-                    if ("bet".equalsIgnoreCase(command) && amountStr != null && option != null) {
+                    if ("bet".equalsIgnoreCase(command) && amountStr != null && option != null && !option.isBlank()) {
                         try {
                             long amount = Long.parseLong(amountStr);
                             if (amount > 0) {
-                                // Auto-place bet from stream chat
                                 placeBet("Stream", amount, option);
                             }
                         } catch (NumberFormatException ignored) {
-                            // Invalid amount from bridge - ignore
+                            // Invalid amount - ignore
                         }
                     }
                 }
 
+                // Forward recent non-command chat (kept simple for now)
                 if (body.contains("\"recent_messages\":")) {
                     int lastMsgStart = body.lastIndexOf("\"message\":\"");
                     if (lastMsgStart > 0) {
@@ -638,19 +640,69 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         }
     }
 
-    private String extractJsonValue(String json, String key) {
+    /**
+     * Extracts a top-level JSON object or value for a given key (simple implementation).
+     */
+    private String extractObject(String json, String key) {
         String search = "\"" + key + "\":";
         int start = json.indexOf(search);
         if (start < 0) return null;
 
         start += search.length();
-        while (start < json.length() && (json.charAt(start) == ' ' || json.charAt(start) == '"')) start++;
 
-        int end = start;
-        while (end < json.length() && json.charAt(end) != ',' && json.charAt(end) != '}' && json.charAt(end) != '"') {
-            end++;
+        // Skip whitespace
+        while (start < json.length() && Character.isWhitespace(json.charAt(start))) start++;
+
+        if (start >= json.length()) return null;
+
+        char firstChar = json.charAt(start);
+
+        if (firstChar == '{') {
+            // Extract object
+            int depth = 1;
+            int end = start + 1;
+            while (end < json.length() && depth > 0) {
+                char c = json.charAt(end);
+                if (c == '{') depth++;
+                else if (c == '}') depth--;
+                end++;
+            }
+            return json.substring(start, end);
+        } else if (firstChar == '"') {
+            // Extract string value
+            int end = json.indexOf('"', start + 1);
+            if (end > start) return json.substring(start, end + 1);
+        } else {
+            // Extract literal (null, true, false, number)
+            int end = start;
+            while (end < json.length() && !Character.isWhitespace(json.charAt(end)) && json.charAt(end) != ',' && json.charAt(end) != '}') {
+                end++;
+            }
+            return json.substring(start, end);
         }
-        return json.substring(start, end).trim().replace("\"", "");
+        return null;
+    }
+
+    /**
+     * Extracts a string value for a key inside a JSON object string.
+     */
+    private String extractJsonStringValue(String jsonObject, String key) {
+        String search = "\"" + key + "\":";
+        int start = jsonObject.indexOf(search);
+        if (start < 0) return null;
+
+        start += search.length();
+
+        // Skip whitespace
+        while (start < jsonObject.length() && Character.isWhitespace(jsonObject.charAt(start))) start++;
+
+        if (start >= jsonObject.length() || jsonObject.charAt(start) != '"') return null;
+
+        start++; // skip opening quote
+        int end = jsonObject.indexOf('"', start);
+        if (end < start) return null;
+
+        return jsonObject.substring(start, end);
     }
 
     @Override
