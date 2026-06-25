@@ -173,8 +173,40 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     private void handleBetCommand(String username, String message) { /* TODO */ }
     private void handleChatBetCommand(String sender) { /* TODO */ }
-    private void handleBetsCommand() { /* TODO */ }
     private void handleResolveCommand(String sender, String message) { /* TODO */ }
+    private void handleChatBetCommand(String sender) { /* TODO */ }
+    private void handleBetsCommand() {
+        List<Poll> activePolls = betManager.getActivePolls();
+
+        if (activePolls.isEmpty()) {
+            sendGameMessage("[ChatBet] No active bets right now.");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder("[ChatBet] Active bets: ");
+        for (int i = 0; i < activePolls.size(); i++) {
+            if (i > 0) sb.append(" | ");
+            sb.append(activePolls.get(i).getQuestion());
+        }
+
+        sendGameMessage(sb.toString());
+    }
+
+    private void sendGameMessage(String text) {
+        if (chatMessageManager != null && clientThread != null) {
+            clientThread.invokeLater(() ->
+                chatMessageManager.queue(
+                    QueuedMessage.builder()
+                        .type(ChatMessageType.GAMEMESSAGE)
+                        .value(text)
+                        .build()
+                )
+            );
+        } else {
+            log.info(text);
+        }
+    }
+
     private void handleBalanceCommand(String sender) {
         if (sender == null || sender.isBlank()) return;
 
@@ -395,7 +427,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public Map<String, Double> getOuraniaRuneOdds() {
         if (activeModule instanceof OuroniaAltarModule) {
-            OuraniaAltarModule ourania = (OuroniaAltarModule) activeModule;
+            OuraniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
             return ourania.getRuneOdds(rcLevel, ourania.isWearingFullRaiments());
         }
