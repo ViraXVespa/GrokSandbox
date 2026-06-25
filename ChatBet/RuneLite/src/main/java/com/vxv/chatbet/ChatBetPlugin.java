@@ -248,7 +248,30 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     }
 
     private void handleChatBetCommand(String sender) { /* TODO */ }
-    private void handleResolveCommand(String sender, String message) { /* TODO */ }
+    private void handleResolveCommand(String sender, String message) {
+        if (message == null) return;
+
+        String lower = message.toLowerCase();
+        if (!lower.startsWith("!resolve ")) return;
+
+        String arg = message.substring(9).trim();
+        int optionIndex;
+        try {
+            optionIndex = Integer.parseInt(arg);
+        } catch (NumberFormatException e) {
+            sendGameMessage("[ChatBet] Usage: !resolve <optionIndex>");
+            return;
+        }
+
+        if (lastOuraniaPollId <= 0) {
+            sendGameMessage("[ChatBet] No active Ourania poll to resolve.");
+            return;
+        }
+
+        resolveOuraniaPoll(optionIndex);
+        sendGameMessage("[ChatBet] Poll resolved with option index " + optionIndex + ".");
+    }
+
     private void handleBetsCommand() {
         List<Poll> activePolls = betManager.getActivePolls();
 
@@ -501,7 +524,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public Map<String, Double> getOuraniaRuneOdds() {
         if (activeModule instanceof OuroniaAltarModule) {
-            OuraniaAltarModule ourania = (OuroniaAltarModule) activeModule;
+            OuraniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
             return ourania.getRuneOdds(rcLevel, ourania.isWearingFullRaiments());
         }
