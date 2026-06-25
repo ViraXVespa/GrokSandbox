@@ -687,8 +687,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
                     .type(ChatMessageType.GAMEMESSAGE)
                     .value(text)
                     .build()
-                );
-            });
+            );
         });
     }
 
