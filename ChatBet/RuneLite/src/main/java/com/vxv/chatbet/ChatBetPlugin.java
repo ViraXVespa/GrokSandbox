@@ -247,7 +247,11 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         }
     }
 
-    private void handleChatBetCommand(String sender) { /* TODO */ }
+    private void handleChatBetCommand(String sender) {
+        String help = "[ChatBet] Commands: !bet <amount> on <option> | !balance | !bets";
+        sendGameMessage(help);
+    }
+
     private void handleResolveCommand(String sender, String message) {
         if (message == null) return;
 
@@ -502,7 +506,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     // Delegation for OuraniaAltarModule
     public List<String> getCurrentRuneOptions() {
-        if (activeModule instanceof OuraniaAltarModule) {
+        if (activeModule instanceof OuroniaAltarModule) {
             return ((OuroniaAltarModule) activeModule).getCurrentRuneOptions();
         }
         return List.of();
@@ -524,7 +528,7 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public Map<String, Double> getOuraniaRuneOdds() {
         if (activeModule instanceof OuroniaAltarModule) {
-            OuraniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
+            OuroniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
             return ourania.getRuneOdds(rcLevel, ourania.isWearingFullRaiments());
         }
