@@ -527,22 +527,22 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     }
 
     public boolean isOuraniaBettingLocked() {
-        if (activeModule instanceof OuroniaAltarModule) {
-            return ((OuroniaAltarModule) activeModule).isBettingLocked();
+        if (activeModule instanceof OuraniaAltarModule) {
+            return ((OuraniaAltarModule) activeModule).isBettingLocked();
         }
         return false;
     }
 
     public boolean isWearingFullRaiments() {
-        if (activeModule instanceof OuroniaAltarModule) {
-            return ((OuroniaAltarModule) activeModule).isWearingFullRaiments();
+        if (activeModule instanceof OuraniaAltarModule) {
+            return ((OuraniaAltarModule) activeModule).isWearingFullRaiments();
         }
         return false;
     }
 
     public Map<String, Double> getOuraniaRuneOdds() {
-        if (activeModule instanceof OuroniaAltarModule) {
-            OuroniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
+        if (activeModule instanceof OuraniaAltarModule) {
+            OuraniaAltarModule ouronia = (OuraniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
             return ouronia.getRuneOdds(rcLevel, ouronia.isWearingFullRaiments());
         }
