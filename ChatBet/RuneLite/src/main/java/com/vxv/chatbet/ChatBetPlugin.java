@@ -42,6 +42,10 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.QueuedMessage;
 
+// For launching and piping the Python bridge process
+ import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 @Slf4j
 @PluginDescriptor(
     name = "ChatBet",
@@ -85,6 +89,12 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
     private final HttpClient httpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(2))
         .build();
+
+    /**
+     * Handle to the external Python bridge process (stream_bet_bridge.py).
+     * Managed automatically on plugin start/stop.
+     */
+    private Process bridgeProcess;
 
     @Provides
     ChatBetConfig provideConfig(ConfigManager configManager) {
@@ -132,10 +142,16 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
         } else {
             activeModule = null; // Support inactive state
         }
+
+        // Start the Python StreamLabs bridge automatically
+        startPythonBridge();
     }
 
     @Override
     protected void shutDown() throws Exception {
+        // Stop the Python bridge first
+        stopPythonBridge();
+
         overlayManager.remove(overlay);
         if (navButton != null && clientToolbar != null) {
             clientToolbar.removeNavigation(navButton);
@@ -148,6 +164,99 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
             configManager.getConfig(ChatBetConfig.class).selectedTask(activeModule.getName());
         } else {
             configManager.getConfig(ChatBetConfig.class).selectedTask("");
+        }
+    }
+
+    /**
+     * Starts the Python bridge process (stream_bet_bridge.py) and pipes its output to RuneLite logs.
+     */
+    private void startPythonBridge() {
+        if (bridgeProcess != null && bridgeProcess.isAlive()) {
+            log.info("[Bridge] Python bridge is already running.");
+            return;
+        }
+
+        try {
+            // TODO: Make these configurable in a follow-up commit
+            String pythonExe = "python"; // assumes python is on PATH
+            String scriptPath = "C:/Users/Vince/source/repos/GrokSandbox/ChatBet/StreamLabs/stream_bet_bridge.py";
+
+            List<String> command = new ArrayList<>();
+            command.add(pythonExe);
+            command.add(scriptPath);
+
+            if (config.showDebugVars()) {
+                command.add("--debug");
+            }
+
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.redirectErrorStream(false); // keep stdout and stderr separate
+
+            bridgeProcess = pb.start();
+
+            // Pipe stdout from bridge to RuneLite log
+            startOutputPipe(bridgeProcess.getInputStream(), "[Bridge][stdout] ");
+            // Pipe stderr from bridge to RuneLite log
+            startOutputPipe(bridgeProcess.getErrorStream(), "[Bridge][stderr] ");
+
+            log.info("[Bridge] Started Python bridge process (PID: {}) with command: {}",
+                    bridgeProcess.pid(), String.join(" ", command));
+
+        } catch (Exception e) {
+            log.error("[Bridge] Failed to start Python bridge process", e);
+            bridgeProcess = null;
+        }
+    }
+
+    /**
+     * Reads lines from the given InputStream and logs them with the given prefix.
+     */
+    private void startOutputPipe(java.io.InputStream stream, String prefix) {
+        Thread t = new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (config.showDebugVars()) {
+                        log.info(prefix + line);
+                    } else {
+                        // Only log warnings/errors even when debug is off
+                        if (prefix.contains("stderr")) {
+                            log.warn(prefix + line);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.debug("[Bridge] Output pipe closed: {}", e.getMessage());
+            }
+        }, "bridge-output-" + prefix);
+        t.setDaemon(true);
+        t.start();
+    }
+
+    /**
+     * Stops the Python bridge process if it is running.
+     */
+    private void stopPythonBridge() {
+        if (bridgeProcess == null) {
+            return;
+        }
+
+        try {
+            if (bridgeProcess.isAlive()) {
+                log.info("[Bridge] Stopping Python bridge process...");
+                bridgeProcess.destroy();
+
+                // Give it a moment to exit cleanly
+                if (!bridgeProcess.waitFor(3, java.util.concurrent.TimeUnit.SECONDS)) {
+                    log.warn("[Bridge] Python bridge did not exit in time, forcing termination.");
+                    bridgeProcess.destroyForcibly();
+                }
+                log.info("[Bridge] Python bridge stopped.");
+            }
+        } catch (Exception e) {
+            log.error("[Bridge] Error while stopping Python bridge", e);
+        } finally {
+            bridgeProcess = null;
         }
     }
 
@@ -535,14 +644,14 @@ public class ChatBetPlugin extends Plugin implements DebugInfoProvider {
 
     public boolean isWearingFullRaiments() {
         if (activeModule instanceof OuraniaAltarModule) {
-            return ((OuraniaAltarModule) activeModule).isWearingFullRaiments();
+            return ((OuroniaAltarModule) activeModule).isWearingFullRaiments();
         }
         return false;
     }
 
     public Map<String, Double> getOuraniaRuneOdds() {
-        if (activeModule instanceof OuraniaAltarModule) {
-            OuraniaAltarModule ouronia = (OuraniaAltarModule) activeModule;
+        if (activeModule instanceof OuroniaAltarModule) {
+            OuroniaAltarModule ouronia = (OuroniaAltarModule) activeModule;
             int rcLevel = (client != null) ? client.getRealSkillLevel(Skill.RUNECRAFT) : 0;
             return ouronia.getRuneOdds(rcLevel, ouronia.isWearingFullRaiments());
         }
