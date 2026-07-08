@@ -1,1 +1,1 @@
-// Updated with foundation complete notes and next steps
+// Updated with current streaming test status

@@ -1,1 +1,1 @@
-// More realistic capture with BufferedImage and scaling
+// Now generates simple test frames (colored rectangles with timestamp) for end-to-end testing

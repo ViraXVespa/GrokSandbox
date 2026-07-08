@@ -1,1 +1,1 @@
-// Added basic scaling support for received frames
+// Can now receive and display test frames
