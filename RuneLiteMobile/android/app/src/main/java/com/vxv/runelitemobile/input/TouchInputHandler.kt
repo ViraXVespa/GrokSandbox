@@ -1,5 +1,6 @@
 package com.vxv.runelitemobile.input
 
+import android.content.Context
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -7,25 +8,41 @@ import android.view.ScaleGestureDetector
 import com.vxv.runelitemobile.connection.ConnectionManager
 
 /**
- * Translates Android touch gestures into normalized InputEvent objects
- * and sends them to the PC via ConnectionManager.
- *
- * Directly implements Goal #2: natural touch input (swipes, pinch, taps).
+ * Handles touch gestures and converts them to messages sent to the PC plugin.
  */
-class TouchInputHandler {
+class TouchInputHandler(context: Context) {
 
-    // TODO: Hold references to GestureDetector and ScaleGestureDetector
+    private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
+            val msg = "TAP:${e.x},${e.y}"
+            ConnectionManager.sendMessage(msg)
+            return true
+        }
+
+        override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+            // Treat scroll/drag as camera swipe for MVP
+            val msg = "SWIPE_CAMERA:${distanceX},${distanceY}"
+            ConnectionManager.sendMessage(msg)
+            return true
+        }
+
+        override fun onLongPress(e: MotionEvent) {
+            val msg = "LONG_PRESS:${e.x},${e.y}"
+            ConnectionManager.sendMessage(msg)
+        }
+    })
+
+    private val scaleGestureDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        override fun onScale(detector: ScaleGestureDetector): Boolean {
+            val msg = "PINCH_SCALE:${detector.scaleFactor}"
+            ConnectionManager.sendMessage(msg)
+            return true
+        }
+    })
 
     fun onTouchEvent(event: MotionEvent): Boolean {
-        // TODO: Let detectors process the event
-        // When a gesture is recognized, create InputEvent and send:
-        // ConnectionManager.sendInputEvent(...)
-        return true
+        var handled = scaleGestureDetector.onTouchEvent(event)
+        handled = gestureDetector.onTouchEvent(event) || handled
+        return handled
     }
-
-    // Example mapping ideas (to be implemented):
-    // - Single finger drag → DRAG_MOVE or SWIPE_CAMERA (deltaX/deltaY normalized)
-    // - Pinch → PINCH_SCALE with scale factor
-    // - Tap → TAP at (x, y)
-    // - Long press → LONG_PRESS
 }

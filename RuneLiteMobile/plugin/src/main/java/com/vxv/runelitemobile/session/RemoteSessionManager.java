@@ -12,10 +12,6 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Manages remote Android client connections and the bidirectional communication channel.
- * This is the core of the PC-side remote functionality.
- */
 @Slf4j
 public class RemoteSessionManager extends WebSocketServer {
 
@@ -34,53 +30,62 @@ public class RemoteSessionManager extends WebSocketServer {
         String clientAddress = conn.getRemoteSocketAddress().toString();
         connectedClients.put(conn, clientAddress);
         log.info("Android client connected: {}", clientAddress);
-
-        // TODO: Trigger MobileUIAdapter.onMobileSessionStarted()
-        // TODO: Send initial game state / config snapshot to client
     }
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         String clientAddress = connectedClients.remove(conn);
         log.info("Android client disconnected: {} ({})", clientAddress, reason);
-
-        // TODO: Trigger MobileUIAdapter.onMobileSessionEnded() if no more clients
     }
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        log.debug("Received message from {}: {}", conn.getRemoteSocketAddress(), message);
+        log.debug("Received: {}", message);
 
-        // TODO: Parse message (JSON or custom protocol)
-        // - If it's an InputEvent → inputInjector.handleEvent(...)
-        // - If it's a settings request → send current config
-        // - If it's a frame request or other control message
+        // Simple MVP protocol parsing
+        try {
+            String[] parts = message.split(":", 2);
+            String typeStr = parts[0];
+            String data = parts.length > 1 ? parts[1] : "";
+
+            InputEvent event = parseInputEvent(typeStr, data);
+            if (event != null) {
+                inputInjector.handleEvent(event);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to parse message: {}", message, e);
+        }
+    }
+
+    private InputEvent parseInputEvent(String typeStr, String data) {
+        try {
+            InputEvent.Type type = InputEvent.Type.valueOf(typeStr);
+            String[] nums = data.split(",");
+
+            float x = nums.length > 0 ? Float.parseFloat(nums[0]) : 0f;
+            float y = nums.length > 1 ? Float.parseFloat(nums[1]) : 0f;
+            float deltaX = nums.length > 2 ? Float.parseFloat(nums[2]) : 0f;
+            float deltaY = nums.length > 3 ? Float.parseFloat(nums[3]) : 0f;
+            float scale = nums.length > 4 ? Float.parseFloat(nums[4]) : 0f;
+
+            return new InputEvent(type, x, y, deltaX, deltaY, scale);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
-        log.error("WebSocket error from client", ex);
+        log.error("WebSocket error", ex);
     }
 
     @Override
     public void onStart() {
-        log.info("RemoteSessionManager WebSocket server started on port {}", getPort());
+        log.info("RemoteSessionManager started on port {}", getPort());
     }
 
-    public void startServer() {
-        this.start();
-        log.info("RemoteSessionManager starting...");
-    }
-
+    public void startServer() { this.start(); }
     public void stopServer() {
-        try {
-            this.stop();
-            log.info("RemoteSessionManager stopped.");
-        } catch (Exception e) {
-            log.error("Error stopping RemoteSessionManager", e);
-        }
+        try { this.stop(); } catch (Exception ignored) {}
     }
-
-    // TODO: Method to broadcast frames to all connected clients
-    // public void broadcastFrame(byte[] frameData) { ... }
 }
