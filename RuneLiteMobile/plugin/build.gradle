@@ -11,11 +11,11 @@ repositories {
 
 dependencies {
     // RuneLite
-    compileOnly 'net.runelite:client:1.10.+' // or whatever current is; update as needed
+    compileOnly 'net.runelite:client:1.10.+' 
     compileOnly 'net.runelite.rs:runelite-api:1.10.+'
 
-    // TODO: Add WebSocket lib for remote session (e.g. Java-WebSocket or Undertow)
-    // implementation 'org.java-websocket:Java-WebSocket:1.5.+' 
+    // WebSocket server for Android client connections (lightweight and proven with RuneLite plugins)
+    implementation 'org.java-websocket:Java-WebSocket:1.5.4'
 
     implementation 'org.slf4j:slf4j-api:2.0.+' 
     compileOnly 'org.projectlombok:lombok:1.18.+' 
@@ -26,4 +26,4 @@ jar {
     archiveBaseName.set('runelitemobile')
 }
 
-// TODO: Add shadowJar plugin for fat jar like ChatBet when ready
+// TODO: Add shadowJar for fat-jar distribution when ready
