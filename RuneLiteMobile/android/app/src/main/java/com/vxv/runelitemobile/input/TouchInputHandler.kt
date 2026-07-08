@@ -1,1 +1,1 @@
-// Added fling gesture + better normalization using CoordinateNormalizer
+// Added velocity tracking and more gesture types

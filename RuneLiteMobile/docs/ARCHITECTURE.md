@@ -1,1 +1,1 @@
-// Updated frame streaming section
+// Updated input section with latest improvements

@@ -1,1 +1,1 @@
-// Improved camera control and drag injection logic
+// Improved camera control with velocity mapping
