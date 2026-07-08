@@ -1,1 +1,1 @@
- // Updated streaming efficiency notes
+ // Updated error handling section
