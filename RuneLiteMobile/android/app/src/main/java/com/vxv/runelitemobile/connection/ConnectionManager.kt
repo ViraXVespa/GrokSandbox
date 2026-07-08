@@ -1,1 +1,1 @@
-// Better connection state tracking and lifecycle
+// Minor binary frame support improvements

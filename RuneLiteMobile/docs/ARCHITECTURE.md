@@ -1,1 +1,1 @@
-// Updated with stability and lifecycle notes
+// Updated frame streaming section

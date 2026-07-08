@@ -1,1 +1,1 @@
-// Improved capture timing and BufferedImage handling sketch
+// More complete capture method with timing

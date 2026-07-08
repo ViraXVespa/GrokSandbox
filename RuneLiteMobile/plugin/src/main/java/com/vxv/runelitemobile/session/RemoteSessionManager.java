@@ -1,1 +1,1 @@
-// Better shutdown and error handling
+// Added periodic frame capture trigger and basic sending loop

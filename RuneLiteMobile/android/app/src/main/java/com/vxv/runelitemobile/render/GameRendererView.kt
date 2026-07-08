@@ -1,1 +1,1 @@
-// Added onFrameReceived and basic rendering pipeline
+// Better handling of incoming frame data
