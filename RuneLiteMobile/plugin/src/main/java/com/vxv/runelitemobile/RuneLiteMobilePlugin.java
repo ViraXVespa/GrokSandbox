@@ -2,24 +2,15 @@ package com.vxv.runelitemobile;
 
 import javax.inject.Inject;
 
+import com.vxv.runelitemobile.input.InputInjector;
+import com.vxv.runelitemobile.session.RemoteSessionManager;
+import com.vxv.runelitemobile.ui.MobileUIAdapter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.ui.ClientToolbar;
-import net.runelite.client.ui.NavigationButton;
 
-/**
- * RuneLiteMobile plugin - PC side of the hybrid mobile experience.
- *
- * Responsibilities (aligned to project vision):
- * - Start embedded remote server / session manager for Android app connections
- * - Handle incoming touch/gesture events and inject them into the game (camera rotate, zoom, clicks)
- * - Hide desktop-only UI elements (sidebar, top bar) when a mobile remote session is active
- * - Provide rescaling hints and mobile-optimized rendering adjustments
- * - Expose RuneLite config + plugin settings over the protocol so the Android app can offer a touch-friendly settings UI
- */
 @Slf4j
 @PluginDescriptor(
     name = "RuneLite Mobile",
@@ -34,42 +25,40 @@ public class RuneLiteMobilePlugin extends Plugin {
     @Inject
     private ConfigManager configManager;
 
-    @Inject
-    private ClientToolbar clientToolbar;
-
-    // TODO (Phase 1): Inject or create RemoteSessionManager (WebSocket server or custom protocol)
-    // private RemoteSessionManager sessionManager;
-
-    // TODO: InputInjector, UIAdapter (hider + rescaler), MobileConfigBridge
-
-    private NavigationButton navButton;
+    private RemoteSessionManager sessionManager;
+    private InputInjector inputInjector;
+    private MobileUIAdapter uiAdapter;
 
     @Override
     protected void startUp() throws Exception {
         log.info("RuneLiteMobile plugin starting up...");
 
-        // TODO: Initialize and start the remote session server (listen on local port)
-        // sessionManager = new RemoteSessionManager(client, this);
-        // sessionManager.start();
+        // Create core components
+        inputInjector = new InputInjector(client, this);
+        uiAdapter = new MobileUIAdapter();
 
-        // TODO: Register any overlays, panels, or mobile-specific UI
-        // Example: navButton = NavigationButton.builder()... .build();
-        // clientToolbar.addNavigation(navButton);
+        // Get port from config (or default)
+        int port = 8081; // TODO: read from RuneLiteMobileConfig
 
-        log.info("RuneLiteMobile ready. Waiting for Android client connections on local network.");
+        sessionManager = new RemoteSessionManager(this, inputInjector, port);
+        sessionManager.startServer();
+
+        log.info("RuneLiteMobile ready. Listening for Android connections on port {}", port);
     }
 
     @Override
     protected void shutDown() throws Exception {
         log.info("RuneLiteMobile shutting down...");
 
-        // TODO: Gracefully stop sessionManager, clean up connections, restore any hidden UI
-        // if (sessionManager != null) sessionManager.stop();
+        if (sessionManager != null) {
+            sessionManager.stopServer();
+        }
+
+        // TODO: uiAdapter restore UI if needed
     }
 
-    // TODO (future):
-    // - onRemoteSessionStarted() / onRemoteSessionEnded() to toggle UI hiding + scaling
-    // - handleIncomingTouchEvent(x, y, action) -> inject via client.getMouseManager() or key events
-    // - provideMobileConfigSnapshot() for Android settings UI
-    // - applyMobileUIScale(float scale)
+    // TODO: Expose getters or methods for other components if needed
+    public InputInjector getInputInjector() {
+        return inputInjector;
+    }
 }
