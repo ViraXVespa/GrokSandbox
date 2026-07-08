@@ -1,1 +1,1 @@
- // Significant improvements to frame receiving, decoding, and efficient rendering pipeline 
+// Frame receiving and rendering improvements

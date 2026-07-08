@@ -1,1 +1,1 @@
- // Added config sync methods and improved binary frame handling 
+// Settings sync methods + improved error/reconnection handling

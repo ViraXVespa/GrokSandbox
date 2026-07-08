@@ -1,1 +1,1 @@
- // Major update: added frame streaming loop, MJPEG support sketch, better client management, and config sync methods 
+// Large improvements to frame streaming, settings sync handling, and error recovery
