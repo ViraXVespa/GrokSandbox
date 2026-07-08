@@ -1,1 +1,1 @@
-// Added settings/config request and apply methods
+// Better connection state tracking and lifecycle

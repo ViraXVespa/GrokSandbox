@@ -1,1 +1,1 @@
-// Better UIAdapter integration and config handling
+// Improved lifecycle and component coordination

@@ -1,1 +1,1 @@
-// More complete hiding logic and basic scale application
+// Safer state management

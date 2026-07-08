@@ -1,1 +1,1 @@
-// Updated UI adaptation and settings sections
+// Updated with stability and lifecycle notes
