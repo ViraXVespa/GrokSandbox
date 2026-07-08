@@ -1,1 +1,1 @@
-// Updated protocol section
+// Updated with usability and status notes

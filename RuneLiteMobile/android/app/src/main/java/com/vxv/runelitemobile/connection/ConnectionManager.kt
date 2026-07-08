@@ -1,1 +1,1 @@
-// Improved message sending reliability
+// Exposed connection state for UI consumption

@@ -1,1 +1,1 @@
-// Improved lifecycle and component coordination
+// Improved startup logging and status messages
