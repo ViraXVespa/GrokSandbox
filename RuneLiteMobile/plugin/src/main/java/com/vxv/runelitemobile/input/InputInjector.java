@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 
 /**
- * Receives input events from the Android client and injects them into RuneLite.
+ * Injects input events from Android into the RuneLite client.
  */
 @Slf4j
 public class InputInjector {
@@ -38,8 +38,8 @@ public class InputInjector {
     }
 
     private void injectClick(float x, float y) {
-        log.info("Injecting click at ({}, {})", x, y);
-        // TODO: Implement real click injection using MouseManager or canvas dispatch
+        log.info("Click at ({}, {})", x, y);
+        // TODO: Use MouseManager or dispatch MouseEvent to canvas
     }
 
     private void injectLongPress(float x, float y) {
@@ -47,11 +47,18 @@ public class InputInjector {
     }
 
     private void injectCameraControl(float deltaX, float deltaY) {
-        log.info("Camera control: dx={}, dy={}", deltaX, deltaY);
-        // TODO: Implement camera yaw/pitch control
+        log.info("Camera swipe: dx={}, dy={}", deltaX, deltaY);
+
+        // Strategy 1: Simulate arrow keys (simple but not perfect)
+        // Strategy 2: Simulate mouse drag on the game area
+        // Strategy 3: Use CameraManager if accessible via reflection
+
+        // For now we log - real implementation will combine strategies
+        // based on delta magnitude and direction
     }
 
     private void injectZoom(float scale) {
-        log.info("Zoom: {}", scale);
+        log.info("Zoom gesture: scale={}", scale);
+        // TODO: Mouse wheel simulation or direct camera zoom
     }
 }
