@@ -1,1 +1,1 @@
-// Improved camera control with velocity mapping
+// Added visual feedback on test frames (draws click markers)

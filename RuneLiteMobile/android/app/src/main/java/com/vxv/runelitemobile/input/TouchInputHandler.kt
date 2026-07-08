@@ -1,1 +1,1 @@
-// Minor improvements for scaled coordinate handling
+// Improved feedback when sending input events

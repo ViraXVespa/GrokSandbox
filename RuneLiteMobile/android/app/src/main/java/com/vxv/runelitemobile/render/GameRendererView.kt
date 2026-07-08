@@ -1,1 +1,1 @@
-// Can now receive and display test frames
+// Can now receive and display visual feedback markers from the plugin
