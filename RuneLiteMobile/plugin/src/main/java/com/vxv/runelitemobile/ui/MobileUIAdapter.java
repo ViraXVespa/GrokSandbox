@@ -7,10 +7,6 @@ import net.runelite.client.ui.ClientUI;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-/**
- * Adapts the RuneLite UI for mobile remote sessions.
- * Goal #1: Hide desktop-only elements (sidebar, top bar) when a phone is connected.
- */
 @Slf4j
 public class MobileUIAdapter {
 
@@ -25,75 +21,52 @@ public class MobileUIAdapter {
 
     public void onMobileSessionStarted() {
         if (uiHidden) return;
-
-        log.info("Hiding desktop UI for mobile session...");
-
-        try {
-            // Hide sidebar panel
-            Object sidebar = getFieldValue(clientUI, "sidebarPanel");
-            if (sidebar != null) {
-                invokeMethod(sidebar, "setVisible", false);
-            }
-
-            // Hide top bar / title bar if possible
-            Object titleBar = getFieldValue(clientUI, "titleBar");
-            if (titleBar != null) {
-                invokeMethod(titleBar, "setVisible", false);
-            }
-
-            uiHidden = true;
-        } catch (Exception e) {
-            log.warn("Could not hide UI elements (reflection). Some elements may remain visible.", e);
-        }
+        log.info("Hiding desktop UI elements for mobile...");
+        hideComponent("sidebarPanel");
+        hideComponent("titleBar");
+        uiHidden = true;
     }
 
     public void onMobileSessionEnded() {
         if (!uiHidden) return;
-
         log.info("Restoring desktop UI...");
-
-        try {
-            Object sidebar = getFieldValue(clientUI, "sidebarPanel");
-            if (sidebar != null) {
-                invokeMethod(sidebar, "setVisible", true);
-            }
-
-            Object titleBar = getFieldValue(clientUI, "titleBar");
-            if (titleBar != null) {
-                invokeMethod(titleBar, "setVisible", true);
-            }
-
-            uiHidden = false;
-        } catch (Exception e) {
-            log.warn("Error restoring UI", e);
-        }
+        showComponent("sidebarPanel");
+        showComponent("titleBar");
+        uiHidden = false;
     }
 
     public void applyScale(float scaleFactor) {
-        // TODO: Apply scale to relevant overlays / UI components
-        log.debug("Applying mobile UI scale: {}", scaleFactor);
+        log.debug("Applying scale: {}", scaleFactor);
+        // TODO: Scale overlays, fonts, etc.
     }
 
-    // Reflection helpers
-    private Object getFieldValue(Object target, String fieldName) {
+    private void hideComponent(String fieldName) {
         try {
-            Field field = target.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            return field.get(target);
-        } catch (Exception e) {
-            return null;
-        }
+            Object comp = getField(clientUI, fieldName);
+            if (comp != null) invoke(comp, "setVisible", false);
+        } catch (Exception ignored) {}
     }
 
-    private void invokeMethod(Object target, String methodName, Object... args) {
+    private void showComponent(String fieldName) {
         try {
-            Class<?>[] paramTypes = new Class<?>[args.length];
-            for (int i = 0; i < args.length; i++) {
-                paramTypes[i] = args[i].getClass();
-            }
-            Method method = target.getClass().getDeclaredMethod(methodName, paramTypes);
-            method.setAccessible(true);
-            method.invoke(target, args);
+            Object comp = getField(clientUI, fieldName);
+            if (comp != null) invoke(comp, "setVisible", true);
+        } catch (Exception ignored) {}
+    }
+
+    private Object getField(Object target, String name) {
+        try {
+            Field f = target.getClass().getDeclaredField(name);
+            f.setAccessible(true);
+            return f.get(target);
+        } catch (Exception e) { return null; }
+    }
+
+    private void invoke(Object target, String method, Object... args) {
+        try {
+            Method m = target.getClass().getDeclaredMethod(method, boolean.class);
+            m.setAccessible(true);
+            m.invoke(target, args);
         } catch (Exception ignored) {}
     }
 }

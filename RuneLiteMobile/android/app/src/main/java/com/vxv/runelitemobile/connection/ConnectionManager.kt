@@ -2,28 +2,38 @@ package com.vxv.runelitemobile.connection
 
 import android.util.Log
 
-/**
- * Handles connection to the RuneLite plugin server on PC.
- * Manages WebSocket (or future protocol) lifecycle, reconnection, and message routing.
- */
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.WebSocket
+
+import okio.ByteString
+
 object ConnectionManager {
 
     private const val TAG = "ConnectionManager"
+    private var webSocket: WebSocket? = null
+    private val client = OkHttpClient()
 
-    // TODO: OkHttpClient + WebSocket instance
-    // TODO: Current session state (Connected, Connecting, Disconnected)
+    fun connect(ip: String, port: Int = 8081) {
+        val request = Request.Builder().url("ws://$ip:$port").build()
+        webSocket = client.newWebSocket(request, object : okhttp3.WebSocketListener() {
+            override fun onOpen(webSocket: WebSocket, response: okhttp3.Response) {
+                Log.d(TAG, "Connected to plugin")
+            }
+            override fun onMessage(webSocket: WebSocket, text: String) {
+                Log.d(TAG, "Message from plugin: $text")
+            }
+            override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+                // TODO: Handle binary frame data
+            }
+        })
+    }
 
-    fun connect(ipAddress: String, port: Int = 8081) {
-        Log.d(TAG, "Connecting to $ipAddress:$port...")
-        // TODO: Build WebSocket request, set listeners for onOpen, onMessage, onFailure
-        // On successful connect: notify UI, start frame receiver
+    fun sendMessage(message: String) {
+        webSocket?.send(message)
     }
 
     fun disconnect() {
-        Log.d(TAG, "Disconnecting...")
-        // TODO: Close WebSocket gracefully
+        webSocket?.close(1000, "User disconnect")
     }
-
-    // TODO: sendInputEvent(event: InputEvent)
-    // TODO: requestConfigSnapshot() for mobile settings UI
 }

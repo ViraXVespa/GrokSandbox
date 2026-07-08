@@ -17,37 +17,30 @@ public class InputInjector {
 
     public void handleEvent(InputEvent event) {
         switch (event.type) {
-            case TAP:
-                injectClick(event.x, event.y);
-                break;
-            case SWIPE_CAMERA:
-                injectCameraControl(event.deltaX, event.deltaY);
-                break;
-            case PINCH_SCALE:
-            case ZOOM:
-                injectZoom(event.scale);
-                break;
-            default:
-                break;
+            case TAP: injectClick(event.x, event.y); break;
+            case LONG_PRESS: injectLongPress(event.x, event.y); break;
+            case SWIPE_CAMERA: injectCameraSwipe(event.deltaX, event.deltaY); break;
+            case PINCH_SCALE: injectZoom(event.scale); break;
+            case DRAG_MOVE: /* handle drag */ break;
+            default: break;
         }
     }
 
     private void injectClick(float x, float y) {
-        log.info("Injecting click at ({}, {})", x, y);
-        // TODO: Use client.getMouseManager().click(x, y) or dispatch MouseEvent
-        // For many cases reflection on the canvas or menu system is needed
+        log.info("Click injected ({}, {})", x, y);
+        // TODO: Real implementation using MouseManager or canvas dispatch
     }
 
-    private void injectCameraControl(float deltaX, float deltaY) {
-        log.info("Camera control: deltaX={}, deltaY={}", deltaX, deltaY);
-        // Common approaches:
-        // - Simulate arrow key presses via KeyManager
-        // - Drag on the game canvas using MouseManager
-        // - Use client.getCameraManager() if accessible
+    private void injectLongPress(float x, float y) {
+        log.info("Long press at ({}, {})", x, y);
+    }
+
+    private void injectCameraSwipe(float dx, float dy) {
+        log.info("Camera swipe dx={}, dy={}", dx, dy);
+        // TODO: Key simulation or mouse drag on game area
     }
 
     private void injectZoom(float scale) {
-        log.info("Zoom level: {}", scale);
-        // TODO: Mouse wheel simulation or direct camera zoom
+        log.info("Zoom: {}", scale);
     }
 }
