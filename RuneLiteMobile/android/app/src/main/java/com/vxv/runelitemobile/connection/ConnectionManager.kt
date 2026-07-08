@@ -1,1 +1,1 @@
- // Improved reconnection and error handling logic
+ // Improved incoming config handling

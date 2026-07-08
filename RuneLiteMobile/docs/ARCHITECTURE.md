@@ -1,1 +1,1 @@
- // Updated Android UI section
+ // Updated settings sync section

@@ -1,1 +1,1 @@
- // Better client cleanup and error resilience
+ // Added basic SETTINGS_REQUEST response
