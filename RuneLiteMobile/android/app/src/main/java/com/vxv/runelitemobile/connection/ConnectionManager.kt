@@ -1,1 +1,1 @@
-// Better connection flow and settings sync
+// Improved error handling and auto-reconnect logic

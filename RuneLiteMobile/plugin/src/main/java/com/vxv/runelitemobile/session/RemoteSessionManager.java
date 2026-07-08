@@ -1,1 +1,1 @@
-// Frame streaming loop and settings sync improvements
+// Added frame queue and basic broadcasting logic for MJPEG-style streaming

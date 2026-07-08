@@ -1,1 +1,1 @@
-// Progress update
+// Updated streaming section with latest changes

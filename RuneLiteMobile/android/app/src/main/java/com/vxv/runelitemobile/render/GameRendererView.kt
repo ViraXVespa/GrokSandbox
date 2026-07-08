@@ -1,1 +1,1 @@
-// Frame receiving improvements
+// Added onFrameReceived and basic rendering pipeline

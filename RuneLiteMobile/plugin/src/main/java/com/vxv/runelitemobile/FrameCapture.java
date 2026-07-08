@@ -1,1 +1,1 @@
-// Better capture logic and integration with streaming
+// Improved capture timing and BufferedImage handling sketch
