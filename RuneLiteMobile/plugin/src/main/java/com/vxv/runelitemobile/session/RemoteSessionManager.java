@@ -1,1 +1,1 @@
-// Improved frame encoding and sending for test frames
+// More efficient frame distribution to clients

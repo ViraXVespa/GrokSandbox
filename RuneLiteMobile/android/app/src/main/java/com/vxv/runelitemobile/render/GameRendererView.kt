@@ -1,1 +1,1 @@
-// Smoother frame display and reduced flickering
+// Improved frame buffer handling

@@ -1,1 +1,1 @@
-// Better frame timing and reduced redundant sending
+// Cleaner capture logic and better timestamp overlay

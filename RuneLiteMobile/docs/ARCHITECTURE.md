@@ -1,1 +1,1 @@
-// Added clear 'Current Test Capabilities' section
+// Updated test capabilities section
