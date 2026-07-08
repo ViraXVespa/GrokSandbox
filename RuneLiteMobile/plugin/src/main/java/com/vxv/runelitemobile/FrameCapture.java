@@ -1,1 +1,1 @@
-// Integrated with the streaming loop
+// More realistic capture with BufferedImage and scaling

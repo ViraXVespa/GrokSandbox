@@ -1,1 +1,1 @@
-// Updated streaming status
+// Updated frame handling section

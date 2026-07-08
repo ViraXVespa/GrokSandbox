@@ -1,1 +1,1 @@
-// Added simple periodic capture + send loop when clients connected
+// Minor frame sending improvements

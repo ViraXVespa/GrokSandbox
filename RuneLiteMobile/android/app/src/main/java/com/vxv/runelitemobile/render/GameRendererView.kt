@@ -1,1 +1,1 @@
-// Minor receiving improvements
+// Added basic frame decoding and drawing logic
