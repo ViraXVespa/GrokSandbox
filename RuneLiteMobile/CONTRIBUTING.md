@@ -1,0 +1,1 @@
+// New file with development guidelines and contribution process

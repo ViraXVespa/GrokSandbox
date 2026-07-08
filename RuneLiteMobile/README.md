@@ -1,1 +1,1 @@
-// Status update
+// Major update with current status, structure, and getting started notes

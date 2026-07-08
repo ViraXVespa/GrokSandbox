@@ -1,1 +1,1 @@
-// Improved startup logging and status messages
+// Cleaned up TODOs and improved comments

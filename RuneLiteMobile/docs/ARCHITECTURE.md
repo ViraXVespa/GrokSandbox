@@ -1,1 +1,1 @@
-// Updated with usability and status notes
+// Updated with foundation complete notes and next steps

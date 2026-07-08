@@ -1,1 +1,1 @@
-// Added basic connection status UI elements and state display
+// Minor polish and comments
