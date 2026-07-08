@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.vxv.runelitemobile'
+version = '0.1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // RuneLite
+    compileOnly 'net.runelite:client:1.10.+' // or whatever current is; update as needed
+    compileOnly 'net.runelite.rs:runelite-api:1.10.+'
+
+    // TODO: Add WebSocket lib for remote session (e.g. Java-WebSocket or Undertow)
+    // implementation 'org.java-websocket:Java-WebSocket:1.5.+' 
+
+    implementation 'org.slf4j:slf4j-api:2.0.+' 
+    compileOnly 'org.projectlombok:lombok:1.18.+' 
+    annotationProcessor 'org.projectlombok:lombok:1.18.+' 
+}
+
+jar {
+    archiveBaseName.set('runelitemobile')
+}
+
+// TODO: Add shadowJar plugin for fat jar like ChatBet when ready
