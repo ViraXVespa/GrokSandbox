@@ -1,1 +1,1 @@
-// Frame receiving and rendering improvements
+// Frame receiving improvements

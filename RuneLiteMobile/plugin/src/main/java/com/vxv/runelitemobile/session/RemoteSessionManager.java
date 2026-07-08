@@ -1,1 +1,1 @@
-// Large improvements to frame streaming, settings sync handling, and error recovery
+// Frame streaming loop and settings sync improvements

@@ -1,1 +1,1 @@
-// Settings sync methods + improved error/reconnection handling
+// Better connection flow and settings sync
