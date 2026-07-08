@@ -1,1 +1,1 @@
- // Expanded with more robust camera control using multiple strategies and better drag handling 
+// Improved camera control and drag injection logic

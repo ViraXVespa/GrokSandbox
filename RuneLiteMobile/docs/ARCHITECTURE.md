@@ -1,1 +1,1 @@
-// Updated streaming section with latest changes
+// Updated input handling section

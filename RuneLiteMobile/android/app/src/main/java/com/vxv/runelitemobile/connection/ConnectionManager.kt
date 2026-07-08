@@ -1,1 +1,1 @@
-// Improved error handling and auto-reconnect logic
+// Minor stability and logging improvements
