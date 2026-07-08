@@ -1,1 +1,1 @@
-// Added basic frame decoding and drawing logic
+// Added basic scaling support for received frames

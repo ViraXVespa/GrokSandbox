@@ -1,1 +1,1 @@
-// Safer state management
+// Added more concrete scale application logic

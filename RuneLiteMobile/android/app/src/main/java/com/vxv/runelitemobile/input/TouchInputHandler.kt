@@ -1,1 +1,1 @@
-// Added velocity tracking and more gesture types
+// Minor improvements for scaled coordinate handling

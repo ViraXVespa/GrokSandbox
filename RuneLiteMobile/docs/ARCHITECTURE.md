@@ -1,1 +1,1 @@
-// Updated frame handling section
+// Updated rescaling section
