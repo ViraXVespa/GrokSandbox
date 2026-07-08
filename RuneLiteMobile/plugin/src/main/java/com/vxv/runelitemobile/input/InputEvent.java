@@ -1,8 +1,5 @@
 package com.vxv.runelitemobile.input;
 
-/**
- * Represents a normalized input event coming from the Android client.
- */
 public class InputEvent {
 
     public enum Type {
@@ -15,7 +12,9 @@ public class InputEvent {
         PINCH_SCALE,
         PINCH_END,
         SWIPE_CAMERA,
-        ZOOM
+        ZOOM,
+        SETTINGS_REQUEST,
+        CONFIG_UPDATE
     }
 
     public final Type type;
