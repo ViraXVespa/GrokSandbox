@@ -1,1 +1,1 @@
-// More complete capture method with timing
+// Integrated with the streaming loop

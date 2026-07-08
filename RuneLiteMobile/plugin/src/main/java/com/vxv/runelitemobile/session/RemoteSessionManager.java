@@ -1,1 +1,1 @@
-// Added periodic frame capture trigger and basic sending loop
+// Added simple periodic capture + send loop when clients connected

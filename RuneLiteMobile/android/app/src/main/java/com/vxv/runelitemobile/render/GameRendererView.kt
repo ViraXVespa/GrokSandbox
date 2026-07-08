@@ -1,1 +1,1 @@
-// Better handling of incoming frame data
+// Minor receiving improvements
