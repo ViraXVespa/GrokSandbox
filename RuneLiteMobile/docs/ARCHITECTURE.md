@@ -1,1 +1,1 @@
- // Updated error handling section
+ // Updated Android UI section

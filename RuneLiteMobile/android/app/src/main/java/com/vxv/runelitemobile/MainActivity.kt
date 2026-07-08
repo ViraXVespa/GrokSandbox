@@ -1,1 +1,1 @@
-// Minor UI polish
+ // Added Disconnect button and improved status display + connection flow
