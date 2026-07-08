@@ -1,1 +1,1 @@
-// Updated with input feedback loop status
+// Updated with app usability notes

@@ -1,1 +1,1 @@
-// Can now receive and display visual feedback markers from the plugin
+// Better integration with activity lifecycle

@@ -1,1 +1,1 @@
-// Minor polish and comments
+// Added connection button, IP input field, and better status display

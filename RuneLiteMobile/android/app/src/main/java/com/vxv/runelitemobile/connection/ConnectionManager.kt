@@ -1,1 +1,1 @@
-// Exposed connection state for UI consumption
+// Improved connection initiation and state management
