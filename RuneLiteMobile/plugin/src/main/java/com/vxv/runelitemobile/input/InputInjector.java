@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 
 /**
- * Injects input events from Android into the RuneLite client.
+ * Handles injecting input events from the phone into RuneLite.
  */
 @Slf4j
 public class InputInjector {
@@ -38,27 +38,32 @@ public class InputInjector {
     }
 
     private void injectClick(float x, float y) {
-        log.info("Click at ({}, {})", x, y);
-        // TODO: Use MouseManager or dispatch MouseEvent to canvas
+        log.info("TAP at ({}, {})", x, y);
+        // TODO: Real implementation using MouseManager or canvas events
     }
 
     private void injectLongPress(float x, float y) {
-        log.info("Long press at ({}, {})", x, y);
+        log.info("LONG_PRESS at ({}, {})", x, y);
     }
 
     private void injectCameraControl(float deltaX, float deltaY) {
-        log.info("Camera swipe: dx={}, dy={}", deltaX, deltaY);
+        // Determine dominant direction
+        boolean horizontal = Math.abs(deltaX) > Math.abs(deltaY);
 
-        // Strategy 1: Simulate arrow keys (simple but not perfect)
-        // Strategy 2: Simulate mouse drag on the game area
-        // Strategy 3: Use CameraManager if accessible via reflection
+        if (horizontal) {
+            // Horizontal swipe → yaw (left/right)
+            log.info("Camera yaw: {}", deltaX > 0 ? "right" : "left");
+        } else {
+            // Vertical swipe → pitch (up/down)
+            log.info("Camera pitch: {}", deltaY > 0 ? "down" : "up");
+        }
 
-        // For now we log - real implementation will combine strategies
-        // based on delta magnitude and direction
+        // TODO: Actually simulate key presses or mouse drag here
+        // For example: use KeyManager to press arrow keys based on direction
     }
 
     private void injectZoom(float scale) {
-        log.info("Zoom gesture: scale={}", scale);
-        // TODO: Mouse wheel simulation or direct camera zoom
+        log.info("PINCH/ZOOM scale: {}", scale);
+        // TODO: Simulate mouse wheel or use camera zoom API
     }
 }
