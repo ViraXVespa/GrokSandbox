@@ -1,1 +1,1 @@
-// Better integration with activity lifecycle
+// Smoother frame display and reduced flickering

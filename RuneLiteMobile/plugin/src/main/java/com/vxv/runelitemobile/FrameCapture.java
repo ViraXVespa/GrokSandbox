@@ -1,1 +1,1 @@
-// Now generates simple test frames (colored rectangles with timestamp) for end-to-end testing
+// Better frame timing and reduced redundant sending

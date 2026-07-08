@@ -1,1 +1,1 @@
-// Updated with app usability notes
+// Added clear 'Current Test Capabilities' section

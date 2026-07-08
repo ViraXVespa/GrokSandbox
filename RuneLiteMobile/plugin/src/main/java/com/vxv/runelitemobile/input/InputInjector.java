@@ -1,1 +1,1 @@
-// Added visual feedback on test frames (draws click markers)
+// Cleaner visual feedback drawing
