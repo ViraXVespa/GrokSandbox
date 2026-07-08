@@ -41,38 +41,56 @@ Bring the full power of RuneLite (overlays, plugins, configs, XP trackers, etc.)
 - Mobile settings UI (touch-friendly, live sync with RuneLite)
 - Performance & overlay controls
 
+## Current Project State (One-Shot Foundation Complete)
+
+The initial project skeleton is now in place with:
+
+- Strong documentation (README + detailed ARCHITECTURE.md)
+- Proper package structure on both plugin and Android sides
+- Key architectural stubs covering the main responsibilities:
+  - RemoteSessionManager, MobileUIAdapter, InputEvent, InputInjector (plugin)
+  - ConnectionManager, TouchInputHandler, GameRendererView, MobileSettingsActivity (Android)
+  - RuneLiteMobileConfig + basic build files
+
+All stubs contain clear TODOs aligned with the 4 core goals and user flow from the original project instructions.
+
+This gives us a solid, actionable starting point. Ready for iterative implementation.
+
 ## Planned Project Structure
 
 ```
 RuneLiteMobile/
 ├── README.md
+├── docs/
+│   └── ARCHITECTURE.md
 ├── .gitignore
 ├── plugin/               # RuneLite plugin (Java/Gradle)
+│   ├── build.gradle
 │   ├── runelite-plugin.properties
-│   └── src/main/java/com/vxv/runelitemobile/
-│       └── RuneLiteMobilePlugin.java  (and managers)
+│   ├── src/main/java/com/vxv/runelitemobile/
+│   │   ├── RuneLiteMobilePlugin.java
+│   │   ├── RuneLiteMobileConfig.java
+│   │   ├── session/RemoteSessionManager.java
+│   │   ├── input/InputEvent.java
+│   │   ├── input/InputInjector.java
+│   │   └── ui/MobileUIAdapter.java
 └── android/              # Android client app (Kotlin)
-    └── app/src/main/
-        ├── AndroidManifest.xml
-        └── java/com/vxv/runelitemobile/
-            └── MainActivity.kt (and gesture/render/settings packages)
+    └── app/
+        ├── build.gradle
+        ├── src/main/
+        │   ├── AndroidManifest.xml
+        │   ├── java/com/vxv/runelitemobile/
+        │   │   ├── MainActivity.kt
+        │   │   ├── connection/ConnectionManager.kt
+        │   │   ├── input/TouchInputHandler.kt
+        │   │   ├── render/GameRendererView.kt
+        │   │   └── settings/MobileSettingsActivity.kt
+        └── res/values/strings.xml
 ```
-
-Full Gradle wrappers, build configs, and detailed source will be added iteratively.
 
 ## Next Steps
 
-This is the initial foundation commit. We'll expand with:
-- Plugin stub + embedded server start
-- Android skeleton with gesture detection
-- Communication protocol definition
-- UI hiding & input injection proof-of-concept
-
-Tell me what to tackle first (e.g. "add the plugin Java stub", "scaffold Android build files", "start WebSocket server code", or any tweaks to this README).
-
-## Status
-
-**Initialized** — Vision and structure documented. Ready to build.
+Foundation complete. We can now begin real implementation in focused bursts (starting with RemoteSessionManager + basic communication + input injection loop is recommended).
 
 ---
 
