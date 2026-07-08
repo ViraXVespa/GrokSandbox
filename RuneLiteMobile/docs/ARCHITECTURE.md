@@ -1,1 +1,1 @@
-// Updated input handling section
+// Updated UI adaptation and settings sections

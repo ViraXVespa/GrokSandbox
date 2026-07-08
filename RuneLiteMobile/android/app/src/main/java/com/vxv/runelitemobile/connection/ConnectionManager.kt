@@ -1,1 +1,1 @@
-// Minor stability and logging improvements
+// Added settings/config request and apply methods
