@@ -1,1 +1,1 @@
-// Added FRAME message type
+// Cleaned up and expanded message types and helpers

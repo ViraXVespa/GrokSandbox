@@ -1,1 +1,1 @@
-// Updated rescaling section
+// Updated protocol section

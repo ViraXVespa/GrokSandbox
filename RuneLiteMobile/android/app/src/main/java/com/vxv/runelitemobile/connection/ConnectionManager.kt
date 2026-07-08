@@ -1,1 +1,1 @@
-// Minor binary frame support improvements
+// Improved message sending reliability
