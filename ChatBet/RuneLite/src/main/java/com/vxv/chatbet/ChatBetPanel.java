@@ -1,19 +1,27 @@
 package com.vxv.chatbet;
 
+import com.vxv.chatbet.module.ModuleCatalog;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 
 import javax.inject.Inject;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * Side panel: scrollable catalog of every automated / specialised ChatBet module.
+ */
 public class ChatBetPanel extends PluginPanel {
 
     private final ChatBetPlugin plugin;
 
     private JPanel mainPanel;
     private JPanel goalPanel;
+    private JPanel listHost;
 
     private JLabel activeTaskLabel;
     private JSlider goalSlider;
@@ -21,77 +29,125 @@ public class ChatBetPanel extends PluginPanel {
 
     private String currentTask = "Pickpocketing Elves";
     private int currentGoalPercentage = 30;
+    private boolean pendingGoalTask;
 
     @Inject
     public ChatBetPanel(ChatBetPlugin plugin) {
         this.plugin = plugin;
         setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setBorder(new EmptyBorder(8, 8, 8, 8));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
 
         buildMainPanel();
         buildGoalPanel();
-
-        // Start on main task list
         showTaskList();
     }
 
     private void buildMainPanel() {
-        mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel = new JPanel(new BorderLayout(0, 8));
         mainPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        JLabel title = new JLabel("ChatBet Tasks");
-        title.setFont(FontManager.getRunescapeBoldFont().deriveFont(18f));
-        title.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(title);
-        mainPanel.add(Box.createVerticalStrut(20));
+        JLabel title = new JLabel("ChatBet Activities", SwingConstants.CENTER);
+        title.setFont(FontManager.getRunescapeBoldFont().deriveFont(16f));
+        title.setForeground(ColorScheme.BRAND_ORANGE);
+        mainPanel.add(title, BorderLayout.NORTH);
 
-        // Task button - Pickpocketing Elves
-        JButton elvesButton = createTaskButton("Pickpocketing Elves");
-        elvesButton.addActionListener(e -> showGoalConfig("Pickpocketing Elves"));
-        mainPanel.add(elvesButton);
+        listHost = new JPanel();
+        listHost.setLayout(new BoxLayout(listHost, BoxLayout.Y_AXIS));
+        listHost.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        rebuildCatalog();
 
-        mainPanel.add(Box.createVerticalStrut(8));
+        JScrollPane scroll = new JScrollPane(listHost);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.getViewport().setBackground(ColorScheme.DARK_GRAY_COLOR);
+        mainPanel.add(scroll, BorderLayout.CENTER);
 
-        // Task button - Ourania Altar Runes
-        JButton ouraniaButton = createTaskButton("Ourania Altar Runes");
-        ouraniaButton.addActionListener(e -> showGoalConfig("Ourania Altar Runes"));
-        mainPanel.add(ouraniaButton);
+        JPanel south = new JPanel();
+        south.setLayout(new BoxLayout(south, BoxLayout.Y_AXIS));
+        south.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        mainPanel.add(Box.createVerticalGlue());
-
-        activeTaskLabel = new JLabel("Active: None");
+        activeTaskLabel = new JLabel("Active: None", SwingConstants.CENTER);
         activeTaskLabel.setFont(FontManager.getRunescapeSmallFont());
         activeTaskLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
         activeTaskLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(activeTaskLabel);
+        south.add(activeTaskLabel);
+        south.add(Box.createVerticalStrut(6));
 
-        mainPanel.add(Box.createVerticalStrut(10));
-
-        // Cancel Current Task button
         JButton cancelButton = new JButton("Cancel Current Task");
         cancelButton.setFont(FontManager.getRunescapeSmallFont());
         cancelButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        cancelButton.setMaximumSize(new Dimension(220, 36));
-        cancelButton.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        cancelButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        cancelButton.setBackground(ColorScheme.DARKER_GRAY_COLOR);
         cancelButton.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
         cancelButton.setFocusPainted(false);
         cancelButton.addActionListener(e -> cancelCurrentTask());
-        mainPanel.add(cancelButton);
+        south.add(cancelButton);
+
+        mainPanel.add(south, BorderLayout.SOUTH);
     }
 
-    private JButton createTaskButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(FontManager.getRunescapeBoldFont());
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        button.setMaximumSize(new Dimension(240, 42));
-        button.setBackground(ColorScheme.BRAND_ORANGE);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
-        return button;
+    private void rebuildCatalog() {
+        listHost.removeAll();
+        Map<String, List<ModuleCatalog.Entry>> byCat = ModuleCatalog.byCategory();
+        for (Map.Entry<String, List<ModuleCatalog.Entry>> cat : byCat.entrySet()) {
+            JLabel catLabel = new JLabel(cat.getKey());
+            catLabel.setFont(FontManager.getRunescapeBoldFont());
+            catLabel.setForeground(ColorScheme.BRAND_ORANGE);
+            catLabel.setBorder(new EmptyBorder(10, 4, 4, 4));
+            catLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            listHost.add(catLabel);
+
+            for (ModuleCatalog.Entry entry : cat.getValue()) {
+                listHost.add(createModuleCard(entry));
+                listHost.add(Box.createVerticalStrut(4));
+            }
+        }
+        listHost.add(Box.createVerticalGlue());
+        listHost.revalidate();
+        listHost.repaint();
+    }
+
+    private JPanel createModuleCard(ModuleCatalog.Entry entry) {
+        JPanel card = new JPanel(new BorderLayout(4, 2));
+        card.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(ColorScheme.MEDIUM_GRAY_COLOR),
+            new EmptyBorder(6, 8, 6, 8)
+        ));
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 72));
+
+        JLabel name = new JLabel(entry.displayName);
+        name.setFont(FontManager.getRunescapeBoldFont());
+        name.setForeground(Color.WHITE);
+
+        JLabel desc = new JLabel("<html><body style='width:180px'>" + entry.description + "</body></html>");
+        desc.setFont(FontManager.getRunescapeSmallFont());
+        desc.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+
+        JPanel text = new JPanel();
+        text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
+        text.setOpaque(false);
+        text.add(name);
+        text.add(desc);
+
+        JButton go = new JButton("Go");
+        go.setFocusPainted(false);
+        go.setBackground(ColorScheme.BRAND_ORANGE);
+        go.setForeground(Color.WHITE);
+        go.addActionListener(e -> {
+            if (entry.usesGoalSlider) {
+                showGoalConfig(entry.displayName);
+            } else {
+                activateSimpleTask(entry.displayName);
+            }
+        });
+
+        card.add(text, BorderLayout.CENTER);
+        card.add(go, BorderLayout.EAST);
+        return card;
     }
 
     private void buildGoalPanel() {
@@ -107,6 +163,7 @@ public class ChatBetPanel extends PluginPanel {
         goalPanel.add(Box.createVerticalStrut(15));
 
         JLabel taskLabel = new JLabel();
+        taskLabel.setName("taskLabel");
         taskLabel.setFont(FontManager.getRunescapeBoldFont());
         taskLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
         taskLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -135,9 +192,7 @@ public class ChatBetPanel extends PluginPanel {
         goalValueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         goalPanel.add(goalValueLabel);
 
-        goalSlider.addChangeListener(e -> {
-            goalValueLabel.setText(goalSlider.getValue() + "%"); 
-        });
+        goalSlider.addChangeListener(e -> goalValueLabel.setText(goalSlider.getValue() + "%"));
 
         goalPanel.add(Box.createVerticalStrut(20));
 
@@ -169,6 +224,13 @@ public class ChatBetPanel extends PluginPanel {
         goalPanel.add(backButton);
     }
 
+    private void activateSimpleTask(String taskName) {
+        this.currentTask = taskName;
+        plugin.setActiveTask(taskName, 0);
+        JOptionPane.showMessageDialog(this, taskName + " activated.\nViewers can !bet on auto-polls.");
+        showTaskList();
+    }
+
     private void showTaskList() {
         removeAll();
         add(mainPanel, BorderLayout.CENTER);
@@ -179,12 +241,18 @@ public class ChatBetPanel extends PluginPanel {
 
     private void showGoalConfig(String taskName) {
         this.currentTask = taskName;
+        pendingGoalTask = true;
 
-        // Pre-fill slider with current value if this is the active task
+        for (Component c : goalPanel.getComponents()) {
+            if (c instanceof JLabel && "taskLabel".equals(c.getName())) {
+                ((JLabel) c).setText(taskName);
+            }
+        }
+
         int existing = plugin.getCurrentGoalPercentage();
         if (existing > 0) {
             goalSlider.setValue(existing);
-            goalValueLabel.setText(existing + "%"); 
+            goalValueLabel.setText(existing + "%");
         } else {
             goalSlider.setValue(30);
             goalValueLabel.setText("30%");
@@ -199,7 +267,12 @@ public class ChatBetPanel extends PluginPanel {
     private void updateActiveTaskLabel() {
         String active = plugin.getActiveTaskName();
         if (active != null && !active.isEmpty() && !"None".equals(active)) {
-            activeTaskLabel.setText("Active: " + active + " (" + plugin.getCurrentGoalPercentage() + "%) ");
+            int pct = plugin.getCurrentGoalPercentage();
+            if (pct > 0) {
+                activeTaskLabel.setText("Active: " + active + " (" + pct + "%)");
+            } else {
+                activeTaskLabel.setText("Active: " + active);
+            }
         } else {
             activeTaskLabel.setText("Active: None");
         }
@@ -207,7 +280,6 @@ public class ChatBetPanel extends PluginPanel {
 
     private void cancelCurrentTask() {
         if (plugin != null) {
-            // Clear active task
             plugin.setActiveTask("", 0);
             JOptionPane.showMessageDialog(this, "Current task cancelled.");
             refresh();

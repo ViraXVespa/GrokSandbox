@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>VXV.RuneBridge</RootNamespace>
+    <AssemblyName>VXV.RuneBridge</AssemblyName>
+    <Version>1.1.0</Version>
+    <Description>Receive RuneLite game events from the RuneBridge plugin and raise strongly-typed .NET handlers.</Description>
+    <Authors>Vira X Vespa</Authors>
+    <PackageId>VXV.RuneBridge</PackageId>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+</Project>

@@ -40,7 +40,8 @@ public class PickpocketingModule implements BetModule {
     }
     @Override
     public String getName() {
-        return "Pickpocketing (Elves)";
+        // Must match ModuleCatalog display name for side-panel / persistence
+        return "Pickpocketing Elves";
     }
     @Override
     public void onGameTick(GameTick event) {

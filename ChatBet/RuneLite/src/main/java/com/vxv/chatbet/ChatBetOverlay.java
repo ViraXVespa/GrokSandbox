@@ -65,9 +65,10 @@ public class ChatBetOverlay extends Overlay
                 String shortQuestion = poll.getQuestion().length() > 35 
                     ? poll.getQuestion().substring(0, 32) + "..." 
                     : poll.getQuestion();
+                String lock = poll.isBettingOpen() ? "" : " 🔒";
 
                 panelComponent.getChildren().add(LineComponent.builder()
-                    .left("#" + poll.getId() + " [" + poll.getType() + "]")
+                    .left("#" + poll.getId() + " [" + poll.getType() + "]" + lock)
                     .right(shortQuestion)
                     .build());
             }

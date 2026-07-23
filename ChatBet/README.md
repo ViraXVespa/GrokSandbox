@@ -18,6 +18,19 @@ A modular betting and probability system for Old School RuneScape streaming, bui
   - ETC tracking and auto-resolution
   - 30% XP goal progress tracking
   - Suggested drop rates for Fixed Odds bets
+- **RooftopAgilityModule** — laps before next fail
+- **MiningSlotModule** — amethyst/runite weighted slot machine
+- **Auto skill catalog** (`module/auto/*` via `ModuleCatalog`) — activate any from the side panel:
+  - Combat Killstreak, Slayer Task
+  - Fishing Haul, Cooking Burns, Woodcutting Nests, Firemaking Streak
+  - Mining Inventory, Smithing / Crafting / Fletching / Herblore sessions
+  - Prayer Bones, Magic High Alchs, Hunter Catches
+  - Farming Harvest, Construction Build, Runecraft Trip
+  - Thieving Stalls, Agility Marks
+  - Clue Scrolls, Rare Drops, Level-Up Race
+
+All auto modules open polls automatically and resolve from game chat / XP / deaths where applicable.
+Viewers use `!bet <amount> on <option>` (brackets, Yes/No, skill names, or slot line counts).
 
 ## Commands
 
@@ -38,10 +51,30 @@ ChatBetPlugin (Host)
 │   ├── Game state & counters
 │   ├── Goal tracking
 │   └── Suggested outcomes
-└── Overlay + Dialogs
+├── Overlay + Dialogs
+└── DiscordHubClient    → ChatBet/Discord hub (:8766)
 ```
 
 Modules can contribute their own UI to the overlay via `contributeToOverlay()`.
+
+## StreamLabs bridge
+
+See **[StreamLabs/README.md](StreamLabs/README.md)** for chat ingest, **presence** (join/leave-on-idle), and **anti-gameable engagement rewards**.
+
+## Discord
+
+See **[Discord/README.md](Discord/README.md)** for the bot + hub that posts polls to a channel and accepts `/bet` / `/balance` commands.
+
+Quick start:
+
+```powershell
+cd ChatBet\Discord
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+copy .env.example .env   # fill DISCORD_BOT_TOKEN, guild/channel IDs
+python main.py
+```
 
 ## Building
 

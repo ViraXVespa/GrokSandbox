@@ -1,5 +1,6 @@
 package com.vxv.chatbet.ui;
 
+import com.vxv.chatbet.ChatBetPlugin;
 import com.vxv.chatbet.bet.BetManager;
 import com.vxv.chatbet.bet.BetType;
 import com.vxv.chatbet.bet.DropOutcome;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 public class BetCreationDialog extends JDialog {
 
     private final BetManager betManager;
+    private final ChatBetPlugin plugin;
 
     private final JTextField questionField = new JTextField(30);
     private final JComboBox<BetType> typeCombo = new JComboBox<>(BetType.values());
@@ -25,8 +27,13 @@ public class BetCreationDialog extends JDialog {
     private List<DropOutcome> suggestedOutcomes = List.of();
 
     public BetCreationDialog(Frame owner, BetManager betManager) {
+        this(owner, betManager, null);
+    }
+
+    public BetCreationDialog(Frame owner, BetManager betManager, ChatBetPlugin plugin) {
         super(owner, "Create New Bet Poll", true);
         this.betManager = betManager;
+        this.plugin = plugin;
 
         setLayout(new BorderLayout(10, 10));
         setSize(480, 280);
@@ -114,6 +121,10 @@ public class BetCreationDialog extends JDialog {
         String trigger = (String) triggerCombo.getSelectedItem();
         if (!"None".equals(trigger)) {
             poll.withResolutionTrigger(trigger);
+        }
+
+        if (plugin != null) {
+            plugin.onPollCreated(poll);
         }
 
         JOptionPane.showMessageDialog(this, "Poll #" + poll.getId() + " created successfully!");
